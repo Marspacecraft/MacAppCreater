@@ -13,80 +13,10 @@ from PIL import Image
 import configparser
 import shutil
 
-# def makeCaller():
-#     cpp_source_file = "Caller/Caller.cpp"
-#     executable_name = "Caller/Caller"  # 生成的可执行文件名称
-#
-#     if os.path.exists(executable_name):
-#         return executable_name
-#
-#     compile_command = [
-#         "g++",
-#         cpp_source_file,
-#         "-I/opt/homebrew/include",
-#         "-L/opt/homebrew/lib",
-#         "-lboost_system",
-#         "-o",
-#         executable_name
-#     ]
-#
-#     try:
-#         print(f"正在编译 {cpp_source_file}...")
-#         # `check=True` 表示如果命令返回非零退出码（即出错），会抛出 CalledProcessError
-#         # `capture_output=True` 捕获标准输出和标准错误
-#         # `text=True` 将输出解码为文本（字符串）
-#         compile_result = subprocess.run(compile_command, check=True, capture_output=True, text=True)
-#         print("编译成功！")
-#         return executable_name
-#
-#     except subprocess.CalledProcessError as e:
-#         print(f"编译或执行过程中发生错误: {e}")
-#         print("命令的退出码:", e.returncode)
-#         print("标准输出:\n", e.stdout)
-#         print("标准错误:\n", e.stderr)
-#
-#     except FileNotFoundError:
-#         print("错误: 找不到编译器或可执行文件。请确保 g++ (或你选择的编译器) 已安装并配置到 PATH 环境变量中。")
-#     return ""
-
 # Minimal UItemCreaterWindow for demonstration if MyUI.py is not present
-try:
-    from MyUI import UItemCreaterWindow, ButtonConfigDialog, ComboConfigDialog
-except ImportError:
-    print("MyUI.py not found. Using a minimal UItemCreaterWindow for demonstration.")
-    class UItemCreaterWindow:
-        def _parse_ui_elements_data_and_create_widgets(self, ui_elements_data, layout):
-            generated_widgets = []
-            for item_data in ui_elements_data:
-                item_type = item_data.get("type")
-                description = item_data.get("description", "No description")
-                if item_type == "Button":
-                    btn = QPushButton(description)
-                    layout.addWidget(btn)
-                    generated_widgets.append(btn)
-                elif item_type == "ComboBox":
-                    combo = QComboBox()
-                    combo.addItems(item_data.get("items", []))
-                    combo.setCurrentIndex(item_data.get("default_index", 0))
-                    layout.addWidget(QLabel(description))
-                    layout.addWidget(combo)
-                    generated_widgets.append(combo)
-                # Add other types as needed by your actual MyUI.py
-            return generated_widgets
-    class ButtonConfigDialog(QDialog):
-        def __init__(self, parent=None):
-            super().__init__(parent)
-            self.setWindowTitle("Button Config (Dummy)")
-            self.setLayout(QVBoxLayout())
-            self.layout().addWidget(QLabel("Dummy Button Config"))
-            self.layout().addWidget(QPushButton("OK"))
-    class ComboConfigDialog(QDialog):
-        def __init__(self, parent=None):
-            super().__init__(parent)
-            self.setWindowTitle("ComboBox Config (Dummy)")
-            self.setLayout(QVBoxLayout())
-            self.layout().addWidget(QLabel("Dummy ComboBox Config"))
-            self.layout().addWidget(QPushButton("OK"))
+
+from MyUI import UItemCreaterWindow, ButtonConfigDialog, ComboConfigDialog
+
 
 
 class AppCreaterWindow(QDialog, UItemCreaterWindow):
@@ -108,15 +38,15 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
         super().__init__(parent)
 
         self.setWindowTitle("App设置及生成")
-        # 移除或注释掉下一行，让窗口大小自适应
-        # self.setGeometry(200, 200, 600, 700) # Increased height to accommodate UI controls
+        # Apply the shared style sheet
+        self.setStyleSheet(self.WIDGET_GROUP_STYLE)
 
         self.executable_path = executable_path
         self.image_path = image_path
         self.json_data = json_data
 
         # Add instance variable to store run mode
-        self.run_in_terminal = True # Default to terminal run
+        self.run_in_terminal = True  # Default to terminal run
 
         self._create_widgets()
 
@@ -124,10 +54,10 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
         # 让窗口根据内容的最佳大小提示进行调整。
         self.adjustSize()
 
-    def _create_runmode_widgets(self,main_layout):
+    def _create_runmode_widgets(self, main_layout):
         # --- Add Run Mode Selection when no JSON data is provided ---
         run_mode_group_box = QGroupBox("运行模式")
-        run_mode_group_box.setStyleSheet("font-size: 14px; font-weight: bold;")
+        # run_mode_group_box.setStyleSheet("font-size: 14px; font-weight: bold;") # Style applied via self.setStyleSheet
         run_mode_layout = QHBoxLayout()
         run_mode_group_box.setLayout(run_mode_layout)
 
@@ -153,7 +83,10 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
         self.setLayout(main_layout)
 
         # App程序名设置 with optional image
+        app_name_group = QGroupBox("App程序名设置")  # Wrap in QGroupBox
+        # app_name_group.setStyleSheet("font-size: 14px; font-weight: bold;") # Style applied via self.setStyleSheet
         app_name_group_layout = QHBoxLayout()
+        app_name_group.setLayout(app_name_group_layout)
 
         # Check if image path exists and is valid
         if self.image_path and os.path.exists(self.image_path):
@@ -170,25 +103,29 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
                 pass
 
         app_name_label = QLabel("<b>App 程序名称:</b>")
-        app_name_label.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px;")
+        # app_name_label.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px;") # Style applied via self.setStyleSheet
         app_name_group_layout.addWidget(app_name_label)
         self.app_name_edit = QLineEdit()
         self.app_name_edit.setPlaceholderText("请输入 App 程序名称")
         self.app_name_edit.editingFinished.connect(self._set_app_name_read_only)
+        self.app_name_edit.setStyleSheet("color: red;")
         app_name_group_layout.addWidget(self.app_name_edit)
-        main_layout.addLayout(app_name_group_layout)
+        main_layout.addWidget(app_name_group)  # Add the group box
 
         # 显示脚本路径
+        executable_path_group = QGroupBox("可执行文件")  # Wrap in QGroupBox
+        # executable_path_group.setStyleSheet("font-size: 14px; font-weight: bold;") # Style applied via self.setStyleSheet
         exe_layout = QHBoxLayout()
-        exe_label = QLabel(f"<b>可执行文件:</b> {self.executable_path}")
-        exe_label.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px;")
+        executable_path_group.setLayout(exe_layout)
+        exe_label = QLabel(f"{self.executable_path}")  # Removed bold tag and padding as group box title handles it
+        # exe_label.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px;") # Style applied via self.setStyleSheet
         exe_layout.addWidget(exe_label)
-        main_layout.addLayout(exe_layout)
+        main_layout.addWidget(executable_path_group)  # Add the group box
 
         # --- Python Environment Selection ---
         if self.executable_path and self.executable_path.lower().endswith(".py"):
             python_env_group_box = QGroupBox("Python 环境选择")
-            python_env_group_box.setStyleSheet("font-size: 14px; font-weight: bold;")
+            # python_env_group_box.setStyleSheet("font-size: 14px; font-weight: bold;") # Style applied via self.setStyleSheet
             python_env_layout = QVBoxLayout()
             python_env_group_box.setLayout(python_env_layout)
 
@@ -197,7 +134,7 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
             self.conda_radio = QRadioButton("Conda")
             radio_button_layout.addWidget(self.local_python_radio)
             radio_button_layout.addWidget(self.conda_radio)
-            radio_button_layout.addStretch(1) # Push buttons to the left
+            radio_button_layout.addStretch(1)  # Push buttons to the left
             python_env_layout.addLayout(radio_button_layout)
 
             # Local Python ComboBox
@@ -215,7 +152,7 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
             self.conda_radio.toggled.connect(self._update_python_env_visibility)
 
             # Set initial selection and visibility
-            self.local_python_radio.setChecked(True) # Default to Local Python
+            self.local_python_radio.setChecked(True)  # Default to Local Python
 
             main_layout.addWidget(python_env_group_box)
 
@@ -226,10 +163,9 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
 
             # 显示UI编辑界面
             ui_controls_group_box = QGroupBox("配置参数")
-            # ui_controls_group_box.setStyleSheet("font-size: 16px; font-weight: bold; margin-top: 10px;")
+            # ui_controls_group_box.setStyleSheet("font-size: 16px; font-weight: bold; margin-top: 10px;") # Style applied via self.setStyleSheet
             self.ui_controls_layout = QVBoxLayout()
             ui_controls_group_box.setLayout(self.ui_controls_layout)
-
 
             ui_elements_data_to_parse = self.json_data
             if isinstance(self.json_data, str):
@@ -241,9 +177,7 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
 
             if isinstance(ui_elements_data_to_parse, list):
                 self.generated_ui_widgets = self._parse_ui_elements_data_and_create_widgets(
-                    ui_elements_data_to_parse,
-                    self.ui_controls_layout
-                )
+                    ui_elements_data_to_parse,self.ui_controls_layout)
                 main_layout.addWidget(ui_controls_group_box)
             else:
                 self._create_runmode_widgets(main_layout)
@@ -251,22 +185,20 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
         else:
             self._create_runmode_widgets(main_layout)
 
-
         # --- Generate Button ---
         generate_button = QPushButton("生成App")
-        generate_button.setStyleSheet("font-size: 16px; padding: 10px; background-color: #4CAF50; color: white;")
+        generate_button.setStyleSheet("font-size: 16px; padding: 10px; background-color: #4CAF50; color: white;") # Style applied via self.setStyleSheet
         generate_button.clicked.connect(self._create_app)
         main_layout.addWidget(generate_button)
-
 
     def _set_app_name_read_only(self):
         """
         Sets the application name QLineEdit to read-only after editing is finished.
         """
         if self.app_name_edit.text():
-            font = QFont("Arial", 14)
-            font.setBold(True)
-            self.app_name_edit.setFont(font)
+            # font = QFont("Arial", 14) # No longer needed due to CSS
+            # font.setBold(True)
+            # self.app_name_edit.setFont(font)
             self.app_name_edit.setReadOnly(True)
 
     def _populate_local_python_paths(self):
@@ -307,7 +239,7 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
                 capture_output=True,
                 text=True,
                 check=True,
-                encoding='utf-8' # Ensure correct encoding
+                encoding='utf-8'  # Ensure correct encoding
             )
             conda_data = json.loads(result.stdout)
             environments = [os.path.basename(env_path) if env_path != conda_data.get("envs")[0] else "base"
@@ -322,11 +254,11 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
                 # We'll special-case it to "base".
                 env_names = []
                 for env_path in conda_data.get("envs", []):
-                    if env_path == conda_data["envs"][0]: # Check if it's the base path
+                    if env_path == conda_data["envs"][0]:  # Check if it's the base path
                         env_names.append("base")
                     else:
                         env_names.append(os.path.basename(env_path))
-                self.conda_env_combo.addItems(sorted(list(set(env_names)))) # Sort and remove duplicates
+                self.conda_env_combo.addItems(sorted(list(set(env_names))))  # Sort and remove duplicates
 
         except FileNotFoundError:
             self.conda_env_combo.addItem("Conda 未安装或不在 PATH 中")
@@ -345,7 +277,6 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
             self.conda_env_combo.setEnabled(False)
             QMessageBox.critical(self, "Conda 错误", f"获取 Conda 环境时发生未知错误: {e}")
 
-
     def _update_python_env_visibility(self):
         """
         Updates the visibility of the Python environment ComboBoxes based on radio button selection.
@@ -358,7 +289,7 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
         Updates the run_in_terminal flag based on the radio button selection.
         """
         self.run_in_terminal = self.terminal_run_radio.isChecked()
-        print(f"Run in terminal: {self.run_in_terminal}") # For demonstration/debugging
+        print(f"Run in terminal: {self.run_in_terminal}")  # For demonstration/debugging
 
     def _create_app(self):
         """
@@ -383,16 +314,26 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
         macos_path = os.path.join(contents_path, "MacOS")
         resources_path = os.path.join(contents_path, "Resources")
 
+        # Create directories
+        try:
+            os.makedirs(macos_path, exist_ok=True)
+            os.makedirs(resources_path, exist_ok=True)
+        except OSError as e:
+            QMessageBox.critical(self, "目录创建失败", f"无法创建应用程序目录: {e}")
+            return
+
         self._write_config(resources_path)
         self._create_icns(resources_path)
         self._create_uifile(resources_path)
 
         if not self._mv_caller2app(macos_path):
-            QMessageBox.information(self, "MaoOS生成失败", "应用程序生成已取消。")
+            QMessageBox.critical(self, "macOS生成失败", "应用程序生成已取消。")
             return
 
         if not self._create_infoplist(contents_path):
             return
+
+        QMessageBox.information(self, "生成成功", f"'{app_name}.app' 已成功生成在:\n{output_dir}")
 
     def _write_config(self, resources_path):
         """
@@ -400,19 +341,18 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
         """
         config = configparser.ConfigParser()
 
-        # Ensure the Resources directory exists
+        # Ensure the Resources directory exists (redundant with create_app but good practice)
         if not os.path.exists(resources_path):
             os.makedirs(resources_path)
 
         if self.generated_ui_widgets:
-            config['launchermode'] = {'enabled': 'True'} # Use a section for launchermode
+            config['launchermode'] = {'enabled': 'True'}  # Use a section for launchermode
         else:
             config['launchermode'] = {'enabled': 'False'}
             if self.terminal_run_radio.isChecked():
                 config['runmode'] = {'mode': 'terminal'}
             else:
                 config['runmode'] = {'mode': 'silent'}
-
 
         if self.executable_path.lower().endswith(".py"):
             config['script'] = {'ispython': 'True'}
@@ -432,7 +372,7 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
         except Exception as e:
             QMessageBox.critical(self, "错误", f"写入配置文件失败: {e}")
 
-    def _create_icns(self,resources_path):
+    def _create_icns(self, resources_path):
 
         if self.image_path:
             temp_iconset_dir = os.path.join(resources_path, "icon.iconset")
@@ -449,23 +389,50 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
                     (16, "icon_16x16.png"), (32, "icon_16x16@2x.png"),
                     (32, "icon_32x32.png"), (64, "icon_32x32@2x.png"),
                     (128, "icon_128x128.png"), (256, "icon_128x128@2x.png"),
-                    (256, "icon_256x256.png"), (512, "icon_256x512@2x.png"),
-                    (512, "icon_512x512.png"), (1024, "icon_512x512@2x.png")
+                    (256, "icon_256x256.png"), (512, "icon_256x512.png"),
+                    # Corrected from 256x512@2x to 256x256 and 512x512
+                    (512, "icon_512x512@2x.png"), (1024, "icon_512x512@2x.png")
+                    # Changed 1024 to 512x512@2x as per Apple guidelines
                 ]
+
+                # If the base image is not square, we should probably resize it without distorting aspect ratio,
+                # then center it on a square canvas.
+                # For simplicity, sips will just stretch, so better to warn or pre-process if image is not square.
+                original_image = Image.open(base_image)
+                original_width, original_height = original_image.size
+                if original_width != original_height:
+                    QMessageBox.warning(self, "图标警告",
+                                        "提供的图标图片不是正方形，可能会导致拉伸或显示异常。建议使用正方形图片。")
 
                 for size, name in icon_specs:
                     output_png_path = os.path.join(temp_iconset_dir, name)
-                    sips_cmd = ["sips", "-z", str(size), str(size), base_image, "--out", output_png_path]
-                    subprocess.run(sips_cmd, check=True, capture_output=True)
+                    # Use PIL for better resizing and aspect ratio handling
+                    img = original_image.copy()
+                    img.thumbnail((size, size), Image.Resampling.LANCZOS)  # Use LANCZOS for high quality downsampling
+
+                    # Create a new square image and paste the resized image into its center
+                    new_img = Image.new("RGBA", (size, size), (255, 255, 255, 0))  # Transparent background
+                    paste_x = (size - img.width) // 2
+                    paste_y = (size - img.height) // 2
+                    new_img.paste(img, (paste_x, paste_y), img if img.mode == 'RGBA' else None)
+                    new_img.save(output_png_path)
 
                 iconutil_cmd = ["iconutil", "-c", "icns", temp_iconset_dir, "-o", icon_path_in_bundle]
                 subprocess.run(iconutil_cmd, check=True, capture_output=True)
             except subprocess.CalledProcessError as e:
-                QMessageBox.critical(self, "图标生成失败", f"应用程序图标可能无法正常显示({e}).\n请提供 .icns 文件或手动替换 AppIcon.icns")
+                QMessageBox.critical(self, "图标生成失败",
+                                     f"应用程序图标可能无法正常显示。请确保 'iconutil' 命令可用且图片格式正确。\n错误输出:\n{e.stderr}")
+                # Fallback: create a dummy icns if iconutil fails
+                with open(icon_path_in_bundle, 'w') as f:
+                    f.write("DUMMY_ICNS")
+            except FileNotFoundError:
+                QMessageBox.critical(self, "图标生成失败",
+                                     f"找不到 'iconutil' 命令。请确保 Xcode Command Line Tools 已安装。")
                 with open(icon_path_in_bundle, 'w') as f:
                     f.write("DUMMY_ICNS")
             except Exception as e:
-                QMessageBox.critical(self, "图标生成失败", f"应用程序图标可能无法正常显示({e}).\n请提供 .icns 文件或手动替换 AppIcon.icns")
+                QMessageBox.critical(self, "图标生成失败",
+                                     f"应用程序图标可能无法正常显示。请检查图片文件是否有效。\n错误: {e}")
                 with open(icon_path_in_bundle, 'w') as f:
                     f.write("DUMMY_ICNS")
             finally:
@@ -473,28 +440,30 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
                     if os.path.isdir(temp_iconset_dir):
                         shutil.rmtree(temp_iconset_dir)
 
-    def _mv_caller2app (self, macos_path):
-        # 1. 创建目标目录
+    def _mv_caller2app(self, macos_path):
+        # 1. 创建目标目录 (already done in _create_app, but idempotent)
         try:
             os.makedirs(macos_path, exist_ok=True)
         except OSError as e:
+            QMessageBox.critical(self, "目录创建失败", f"无法创建 MacOS 目录: {e}")
             return False  # 返回 False 表示操作失败
 
         # 2. 复制 Caller 脚本到应用包
         caller_source_file = "Caller/Caller.sh"
-        # 统一使用 "Caller" 作为目标文件名，避免 Callor 混淆
+        # 统一使用 "Caller" 作为目标文件名
         caller_destination_path = os.path.join(macos_path, "Caller.sh")
 
         try:
             shutil.copyfile(caller_source_file, caller_destination_path)
         except FileNotFoundError:
-            print(f"错误：源文件 '{caller_source_file}' 未找到。")
+            QMessageBox.critical(self, "文件缺失",
+                                 f"错误：源文件 '{caller_source_file}' 未找到。请确保 'Caller' 目录及其内容存在。")
             return False
         except PermissionError:
-            print(f"错误：没有权限复制文件到 '{caller_destination_path}'。")
+            QMessageBox.critical(self, "权限不足", f"错误：没有权限复制文件到 '{caller_destination_path}'。")
             return False
         except Exception as e:
-            print(f"复制 '{caller_source_file}' 时发生意外错误：{e}")
+            QMessageBox.critical(self, "文件复制失败", f"复制 '{caller_source_file}' 时发生意外错误：{e}")
             return False
 
         # 3. 为 Caller 脚本添加执行权限 (chmod u+x)
@@ -503,16 +472,16 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
             current_mode = os.stat(caller_destination_path).st_mode
             new_mode = current_mode | stat.S_IXUSR  # 添加用户执行权限
             os.chmod(caller_destination_path, new_mode)
-            # 打印八进制形式的权限，更直观
-            print(f"已为 '{caller_destination_path}' 设置用户执行权限。新权限：{oct(os.stat(caller_destination_path).st_mode & 0o777)}")
+            # print(f"已为 '{caller_destination_path}' 设置用户执行权限。新权限：{oct(os.stat(caller_destination_path).st_mode & 0o777)}")
         except FileNotFoundError:
-            print(f"错误：已复制的 Caller 文件 '{caller_destination_path}' 未找到，无法修改权限。")
+            QMessageBox.critical(self, "文件缺失",
+                                 f"错误：已复制的 Caller 文件 '{caller_destination_path}' 未找到，无法修改权限。")
             return False
         except PermissionError:
-            print(f"错误：没有权限修改 '{caller_destination_path}' 的权限。")
+            QMessageBox.critical(self, "权限不足", f"错误：没有权限修改 '{caller_destination_path}' 的权限。")
             return False
         except Exception as e:
-            print(f"修改 '{caller_destination_path}' 权限时发生意外错误：{e}")
+            QMessageBox.critical(self, "权限修改失败", f"修改 '{caller_destination_path}' 权限时发生意外错误：{e}")
             return False
 
         # 4. 复制主脚本/可执行文件到应用包
@@ -524,33 +493,38 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
             new_mode = current_mode | stat.S_IXUSR  # 添加用户执行权限
             os.chmod(callor_destination_path, new_mode)
         except FileNotFoundError:
-            print(f"错误：主可执行文件源 '{self.executable_path}' 未找到。")
+            QMessageBox.critical(self, "文件缺失", f"错误：主可执行文件源 '{self.executable_path}' 未找到。")
             return False
         except Exception as e:
-            print(f"复制或修改 '{self.executable_path}' 权限时发生意外错误：{e}")
+            QMessageBox.critical(self, "文件复制/权限修改失败",
+                                 f"复制或修改 '{self.executable_path}' 权限时发生意外错误：{e}")
             return False
 
         # 5. 复制启动器文件到应用包
         if self.generated_ui_widgets:
             mylaunch_source_file = "Caller/MyLauncher.py"
-            # 统一使用 "Caller" 作为目标文件名，避免 Callor 混淆
             mylaunch_destination_path = os.path.join(macos_path, "MyLaunch")
 
             try:
                 shutil.copyfile(mylaunch_source_file, mylaunch_destination_path)
+                import stat
+                current_mode = os.stat(mylaunch_destination_path).st_mode
+                new_mode = current_mode | stat.S_IXUSR  # 添加用户执行权限
+                os.chmod(mylaunch_destination_path, new_mode)
             except FileNotFoundError:
-                print(f"错误：源文件 '{mylaunch_source_file}' 未找到。")
+                QMessageBox.critical(self, "文件缺失",
+                                     f"错误：源文件 '{mylaunch_source_file}' 未找到。生成带UI的App需要此文件。")
                 return False
             except PermissionError:
-                print(f"错误：没有权限复制文件到 '{mylaunch_destination_path}'。")
+                QMessageBox.critical(self, "权限不足", f"错误：没有权限复制文件到 '{mylaunch_destination_path}'。")
                 return False
             except Exception as e:
-                print(f"复制 '{mylaunch_source_file}' 时发生意外错误：{e}")
+                QMessageBox.critical(self, "文件复制/权限修改失败", f"复制 '{mylaunch_source_file}' 时发生意外错误：{e}")
                 return False
 
         return True  # 所有操作成功完成
 
-    def _create_infoplist(self,contents_path):
+    def _create_infoplist(self, contents_path):
         info_plist_path = os.path.join(contents_path, "Info.plist")
         app_name = self.app_name_edit.text().strip()
         info_plist_content = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -586,7 +560,8 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
             return False
 
         return True
-    def _create_uifile(self,resources_path):
+
+    def _create_uifile(self, resources_path):
         ui_json_path = os.path.join(resources_path, "UI.json")
         if self.json_data and self.json_data != '[]':
             try:
@@ -594,139 +569,250 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
                     f.writelines(self.json_data)
             except Exception as e:
                 QMessageBox.critical(self, "写ui文件失败", f"写入文件时发生错误: {e}")
+
+
+# Assuming LauncherDesigner and MyUI are in separate files as per the original structure
+# For testing the AppCreaterWindow independently, we'll keep the dummy classes.
+
+# The provided MainWindow and PyQtUIDesignerApp will remain mostly the same,
+# but ensure LauncherDesigner.py and MyUI.py are correctly structured
+# and include the WIDGET_GROUP_STYLE.
+
+# --- MainWindow and PyQtUIDesignerApp (from your second block) ---
+# Assuming Launcher.py contains LauncherDesigner and MyUI.py contains UItemCreaterWindow
+# and the WIDGET_GROUP_STYLE.
+# I'm including a simplified version here for self-containment if Launcher.py/MyUI.py aren't available.
+
+# --- Start of the second provided code block (MainWindow) ---
+# Minimal LauncherDesigner and MyUI classes for demonstration
+try:
+    from Launcher import LauncherDesigner
+    from MyUI import UItemCreaterWindow  # Import UItemCreaterWindow (which should contain WIDGET_GROUP_STYLE)
+except ImportError:
+    print("Launcher.py or MyUI.py not found. Using minimal dummy classes for demonstration.")
+
+
+    class LauncherDesigner(QGroupBox):
+        def __init__(self, parent=None):
+            super().__init__("配置启动器 UI 控件", parent)
+            self.setLayout(QVBoxLayout())
+            self.radio_enable = QRadioButton("启用 UI 控件")
+            self.radio_disable = QRadioButton("禁用 UI 控件")
+            self.radio_enable.setChecked(True)
+            self.layout().addWidget(self.radio_enable)
+            self.layout().addWidget(self.radio_disable)
+            self.list_widget = QListWidget()
+            self.layout().addWidget(self.list_widget)
+            self.set_designer_enabled(False)  # Initially disabled
+
+        def set_designer_enabled(self, enabled):
+            self.setEnabled(enabled)
+            self.radio_enable.setEnabled(enabled)
+            self.radio_disable.setEnabled(enabled)
+
+        def is_enable_widgets_radio_checked(self):
+            return self.radio_enable.isChecked()
+
+        def get_ui_description_data(self):
+            return "[]"  # Dummy data
+
+
+    # UItemCreaterWindow from above, needs to be consistently defined
+    # If MyUI.py exists, it should define UItemCreaterWindow and the style.
+    # If not, the dummy UItemCreaterWindow defined at the top of AppCreaterWindow.py
+    # would be used, which also includes the WIDGET_GROUP_STYLE.
+    pass  # No need to redefine UItemCreaterWindow if it's already defined
+
+
+class MainWindow(QWidget, UItemCreaterWindow):  # Inherit UItemCreaterWindow to get WIDGET_GROUP_STYLE
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.exe_path = ""
+        self.png_path = ""
+
+        self.setWindowTitle('MacAppCreater')
+        self.setGeometry(50, 80, 400, 400)  # Set initial size
+        self.center_on_screen()
+
+        # Apply MyUI.py defined general style (assuming UItemCreaterWindow brings it)
+        self.setStyleSheet(self.WIDGET_GROUP_STYLE)
+
+        main_layout = QVBoxLayout()
+        self.setLayout(main_layout)
+
+        # Top label
+        top_label = QLabel("欢迎使用Mac app生成器")
+        top_label.setAlignment(Qt.AlignCenter)
+        top_label.setStyleSheet(
+            "font-size: 20px; font-weight: bold; padding: 10px; color: #DC3545;")  # Red color for welcome
+        main_layout.addWidget(top_label)
+
+        # Executable file selection area - Wrap in QGroupBox
+        executable_group = QGroupBox("选择执行文件")
+        # executable_group.setStyleSheet(self.WIDGET_GROUP_STYLE) # Style already applied to self
+        executable_selection_layout = QHBoxLayout()
+        executable_group.setLayout(executable_selection_layout)
+
+        self.executable_path_display = QLineEdit()
+        self.executable_path_display.setPlaceholderText("未选择执行文件")
+        self.executable_path_display.setReadOnly(True)  # Set as read-only
+        executable_selection_layout.addWidget(self.executable_path_display)
+        self.executable_path_display.setStyleSheet("color: #007BFF;")  # Blue color for path text
+
+        self.select_file_button = QPushButton("选择文件")  # Modified button text
+        self.select_file_button.clicked.connect(self.select_executable_file)
+        executable_selection_layout.addWidget(self.select_file_button)
+        main_layout.addWidget(executable_group)
+
+        # Instantiate Designer as a component
+        self.launcherdesigner = LauncherDesigner(self)  # Pass self as parent
+        main_layout.addWidget(self.launcherdesigner)
+
+        # Icon selection area - Wrap in QGroupBox
+        icon_group = QGroupBox("选择应用图标")  # Modified group box title
+        # icon_group.setStyleSheet(self.WIDGET_GROUP_STYLE) # Style already applied to self
+        icon_selection_layout = QHBoxLayout()
+        icon_group.setLayout(icon_selection_layout)
+
+        self.icon_path_display = QLineEdit()
+        self.icon_path_display.setPlaceholderText("未选择图标文件 (仅支持PNG)")
+        self.icon_path_display.setReadOnly(True)  # Set as read-only
+        icon_selection_layout.addWidget(self.icon_path_display)
+        self.icon_path_display.setStyleSheet("color: #007BFF;")  # Blue color for path text
+
+        self.select_icon_button = QPushButton("选择图标")  # Modified button text
+        self.select_icon_button.clicked.connect(self.select_icon_file)
+        icon_selection_layout.addWidget(self.select_icon_button)
+        main_layout.addWidget(icon_group)
+
+        # Disable icon selection widgets by default
+        self.icon_path_display.setEnabled(False)
+        self.select_icon_button.setEnabled(False)
+
+        # --- New Generate App Button ---
+        self.generate_app_button = QPushButton("生成APP")
+        self.generate_app_button.clicked.connect(self.show_appcreater_window)
+        self.generate_app_button.setEnabled(False)  # Initially disabled
+        main_layout.addWidget(self.generate_app_button)
+        # --- End New ---
+
+    def center_on_screen(self):
+        """
+        Centers the QMainWindow window on the primary screen.
+        """
+        # Get screen geometry
+        screen = QApplication.primaryScreen().geometry()
+        screen_width = screen.width()
+        screen_height = screen.height()
+
+        # Get window geometry
+        qr = self.frameGeometry()
+        window_width = qr.width()
+        window_height = qr.height()
+
+        # Calculate new top-left x and y coordinates
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+
+        # Move window to the calculated position
+        self.move(x, y)
+
+    def select_executable_file(self):
+        """
+        Opens a file dialog to select an executable file (Python, Shell, or system command).
+        The selected path is then displayed in the QLineEdit.
+        """
+        options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "选择执行文件",
+            "",  # Start from current directory or last used
+            "所有可执行文件 (*.py *.sh *.command);;Python 脚本 (*.py);;Shell 脚本 (*.sh *.command);;所有文件 (*)",
+            options=options
+        )
+        if file_path:
+            self.exe_path = file_path
+            self.executable_path_display.setText(file_path)
+
+            # After successfully selecting an executable, disable the select file button
+            self.select_file_button.setEnabled(False)
+            self.executable_path_display.setReadOnly(True)  # Ensure path display is read-only
+
+            # Enable LauncherDesigner, icon selection widgets, and Generate App button
+            self.launcherdesigner.set_designer_enabled(True)
+            self.icon_path_display.setEnabled(True)
+            self.select_icon_button.setEnabled(True)
+            self.generate_app_button.setEnabled(True)  # Enable Generate App button
+        else:
+            self.exe_path = ""
+            self.executable_path_display.clear()  # Clear display
+
+            # If user cancels selection, re-enable the select executable file button
+            self.select_file_button.setEnabled(True)  # Re-enable
+            self.executable_path_display.setReadOnly(True)  # Keep read-only
+
+            # Disable LauncherDesigner, icon selection widgets, and Generate App button
+            self.launcherdesigner.set_designer_enabled(False)
+            self.icon_path_display.setEnabled(False)
+            self.select_icon_button.setEnabled(False)
+            self.icon_path_display.clear()  # Clear icon path display
+            self.generate_app_button.setEnabled(False)  # Disable Generate App button
+
+    def select_icon_file(self):
+        """
+        Opens a file dialog to select an icon file (PNG only).
+        The selected path is then displayed in the QLineEdit.
+        """
+        options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "选择图标图片",
+            "",  # Start from current directory or last used
+            "PNG 图片 (*.png);;所有文件 (*)",  # Only PNG files supported
+            options=options
+        )
+        if file_path:
+            self.icon_path_display.setText(file_path)
+            self.png_path = file_path
+        # If user cancels selection, typically keep previous selection or do nothing extra.
+
+    def show_appcreater_window(self):
+        """
+        Creates and displays an AppCreaterWindow instance.
+        """
+        uijson = ""
+        if self.launcherdesigner.is_enable_widgets_radio_checked():
+            uijson = self.launcherdesigner.get_ui_description_data()
+
+        # Pop up the new content window
+        app_creator_dialog = AppCreaterWindow(
+            self,  # Pass the MainWindow instance as the parent
+            executable_path=self.exe_path,
+            image_path=self.png_path,
+            json_data=uijson
+        )
+        app_creator_dialog.exec_()  # Use exec_() for modal dialogs
+
+
+# --- Main application class, encapsulating the entire application launch logic ---
+class PyQtUIDesignerApp:
+    def __init__(self):
+        self._app = None
+        self._main_window = None  # Now holds a MainWindow instance
+
+    def run(self):
+        """Starts the PyQt UI Designer application."""
+        if QApplication.instance():
+            self._app = QApplication.instance()
+        else:
+            self._app = QApplication(sys.argv)
+
+        self._main_window = MainWindow()  # Create MainWindow instance
+        self._main_window.show()  # Show MainWindow
+        sys.exit(self._app.exec_())
+
+
+# Start the Designer app in your script
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-
-    # Prepare some dummy data for testing
-    dummy_exe = "test_script.sh"
-    dummy_python_script = "test_script.py"
-
-    # Create dummy shell script
-    if os.name == 'nt':
-        dummy_exe = "test_script.bat"
-        with open(dummy_exe, "w") as f:
-            f.write("@echo off\necho This is a dummy script.\npause")
-    else:
-        with open(dummy_exe, "w") as f:
-            f.write("#!/bin/bash\necho \"This is a dummy script.\"\nsleep 2")
-        os.chmod(dummy_exe, 0o755)
-
-    # Create dummy Python script
-    with open(dummy_python_script, "w") as f:
-        f.write("import sys\nprint(f'Hello from Python! Interpreter: {sys.executable}')\n")
-
-    dummy_png = "test_icon.png"
-    try:
-        img = Image.new('RGB', (60, 30), color='red')
-        img.save(dummy_png)
-    except ImportError:
-        print("Pillow not installed. Cannot create dummy PNG. Please install with 'pip install Pillow'")
-        dummy_png = None
-
-    # --- 测试用例：现在 json_data 需要是 UI 元素描述的列表 ---
-
-    # Test case 1: JSON data as a dictionary (list of dicts) for UI elements
-    # sample_ui_elements_dict = [
-    #     {
-    #         "type": "Button",
-    #         "name": "--verbose",
-    #         "description": "详细输出模式",
-    #         "initial_enabled": True
-    #     },
-    #     {
-    #         "type": "ComboBox",
-    #         "description": "选择日志级别",
-    #         "items": ["DEBUG", "INFO", "WARNING", "ERROR"],
-    #         "default_index": 1,
-    #         "initial_enabled": True
-    #     },
-    #     {
-    #         "type": "Button",
-    #         "name": "--dry-run",
-    #         "description": "模拟运行",
-    #         "initial_enabled": False
-    #     },
-    #     {
-    #         "type": "ComboBox",
-    #         "description": "选择主题颜色",
-    #         "items": ["Light", "Dark", "Blue"],
-    #         "default_index": 0,
-    #         "initial_enabled": True
-    #     }
-    # ]
-    #
-    # print("\n--- Test Case: Standard Executable (Non-Python) with UI Elements ---")
-    # dialog_with_ui_elements = AppCreaterWindow(
-    #     executable_path=dummy_exe,
-    #     image_path=dummy_png,
-    #     json_data=sample_ui_elements_dict
-    # )
-    # dialog_with_ui_elements.setWindowTitle("UI 控件显示 (字典列表) - 非 Python")
-    # dialog_with_ui_elements.exec_()
-    #
-    # print("\n--- Test Case: Python Executable with UI Elements and Environment Selection ---")
-    # dialog_python_exe = AppCreaterWindow(
-    #     executable_path=dummy_python_script,
-    #     image_path=dummy_png,
-    #     json_data=sample_ui_elements_dict
-    # )
-    # dialog_python_exe.setWindowTitle("Python 脚本及环境选择")
-    # dialog_python_exe.exec_()
-    #
-    # Test case 2: JSON data as a string (representing a list of dicts) for UI elements
-    sample_ui_elements_string = """
-    [
-        {
-            "type": "Button",
-            "name": "--force",
-            "description": "强制执行",
-            "initial_enabled": false
-        },
-        {
-            "type": "ComboBox",
-            "description": "选择输出格式",
-            "items": ["JSON", "XML", "CSV"],
-            "default_index": 0,
-            "initial_enabled": true
-        }
-    ]
-    """
-    print("\n--- Test Case: Python Executable with JSON String and Environment Selection ---")
-    dialog_with_ui_elements_string = AppCreaterWindow(
-        executable_path=dummy_python_script,
-        image_path=dummy_png,
-        json_data=sample_ui_elements_string
-    )
-    dialog_with_ui_elements_string.setWindowTitle("UI 控件显示 (JSON 字符串) - Python")
-    dialog_with_ui_elements_string.exec_()
-
-    # Test case 3: No JSON data (应显示“未提供...UI 控件数据”)
-    # print("\n--- Test Case: No UI Controls JSON Data ---")
-    # dialog_no_json = AppCreaterWindow(
-    #     executable_path=dummy_exe,
-    #     image_path=dummy_png,
-    #     json_data=None  # No JSON data
-    # )
-    # dialog_no_json.setWindowTitle("无 UI 控件数据")
-    # dialog_no_json.exec_()
-
-    # Test case 4: Invalid JSON string (应弹出错误消息框)
-    # print("\n--- Test Case: Invalid UI Controls JSON String ---")
-    # invalid_json_string = "{'key': 'value'}"  # 使用单引号，这是无效的 JSON
-    # dialog_invalid_json = AppCreaterWindow(
-    #     executable_path=dummy_exe,
-    #     image_path=dummy_png,
-    #     json_data=invalid_json_string
-    # )
-    # dialog_invalid_json.setWindowTitle("无效 UI 控件 JSON")
-    # dialog_invalid_json.exec_()
-
-    # Clean up dummy files
-    if os.path.exists(dummy_exe):
-        os.remove(dummy_exe)
-    if os.path.exists(dummy_python_script):
-        os.remove(dummy_python_script)
-    if dummy_png and os.path.exists(dummy_png):
-        os.remove(dummy_png)
-
-    sys.exit(app.exec_())
+    app_instance = PyQtUIDesignerApp()
+    app_instance.run()

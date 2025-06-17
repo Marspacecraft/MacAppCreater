@@ -1,3 +1,4 @@
+# Launcher.py文件
 import sys
 import os
 import json
@@ -8,12 +9,17 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QSize
 # 从 MyUI.py 导入所需的类
-from MyUI import UItemCreaterWindow, ComboConfigDialog, ButtonConfigDialog
+from MyUI import UItemCreaterWindow, ComboConfigDialog, ButtonConfigDialog, FileSelectConfigDialog, \
+    TextInputConfigDialog
+
 
 # --- LauncherDesigner 类 (现在继承 UiBuilderMixin) ---
 class LauncherDesigner(QWidget, UItemCreaterWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        # 应用通用样式
+        self.setStyleSheet(self.WIDGET_GROUP_STYLE)
 
         self.main_v_layout = QVBoxLayout()
         self.setLayout(self.main_v_layout)
@@ -23,6 +29,30 @@ class LauncherDesigner(QWidget, UItemCreaterWindow):
         self.controls_group_box = QGroupBox('参数命令启动器UI编辑')
         self.controls_v_layout = QVBoxLayout()
         self.controls_group_box.setLayout(self.controls_v_layout)
+
+        # 应用局部样式到 controls_group_box，可以覆盖通用样式
+        self.controls_group_box.setStyleSheet("""
+            QGroupBox {
+                border: 1px solid #a0a0a0;
+                border-radius: 5px;
+                margin-top: 5px;
+                padding-top: 15px;
+                padding-left: 5px;
+                padding-right: 5px;
+                padding-bottom: 5px;
+                font-size: 14px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top center;
+                padding: 0 5px;
+                /* color: #222222; */ /* 移除标题颜色 */
+                border-radius: 3px;
+            }
+            QPushButton {
+                min-height: 25px; /* 统一按钮高度 */
+            }
+        """)
 
         self.enable_widgets_radio = QRadioButton('开启启动器功能')
         self.enable_widgets_radio.setChecked(False)
@@ -36,6 +66,16 @@ class LauncherDesigner(QWidget, UItemCreaterWindow):
         self.add_combo = QPushButton('添加有参参数')
         self.add_combo.clicked.connect(lambda: self.add_widget('combo'))
         self.controls_v_layout.addWidget(self.add_combo)
+
+        # --- 新增：添加文件选择按钮 ---
+        self.add_file_select_btn = QPushButton('添加文件参数')
+        self.add_file_select_btn.clicked.connect(lambda: self.add_widget('file_select'))
+        self.controls_v_layout.addWidget(self.add_file_select_btn)
+
+        # --- 新增：添加文本输入参数按钮 ---
+        self.add_text_input_btn = QPushButton('添加文本参数')
+        self.add_text_input_btn.clicked.connect(lambda: self.add_widget('text_input'))
+        self.controls_v_layout.addWidget(self.add_text_input_btn)
 
         self.generate_ui_desc_btn = QPushButton('导出UI描述文件')
         self.generate_ui_desc_btn.clicked.connect(self.generate_ui_description_file)
@@ -53,6 +93,22 @@ class LauncherDesigner(QWidget, UItemCreaterWindow):
         self.design_layout = QVBoxLayout()
         self.design_layout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         self.design_area.setLayout(self.design_layout)
+        # 为 design_area 设置样式，确保内部的 QGroupBox 组件有合适的空间
+        self.design_area.setStyleSheet("""
+            QGroupBox {
+                border: 1px dashed #cccccc; /* 虚线边框 */
+                border-radius: 5px;
+                margin-top: 5px;
+                padding: 10px;
+                font-size: 14px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top center;
+                padding: 0 5px;
+                /* color: #555555; */ /* 移除标题颜色 */
+            }
+        """)
         self.top_h_layout.addWidget(self.design_area)
 
         self.main_v_layout.addLayout(self.top_h_layout)
@@ -76,6 +132,8 @@ class LauncherDesigner(QWidget, UItemCreaterWindow):
         """
         self.add_btn.setEnabled(enabled)
         self.add_combo.setEnabled(enabled)
+        self.add_file_select_btn.setEnabled(enabled)
+        self.add_text_input_btn.setEnabled(enabled)
         self.generate_ui_desc_btn.setEnabled(enabled)
         self.show_current_ui_btn.setEnabled(enabled)
         self.design_area.setEnabled(enabled)
@@ -110,6 +168,26 @@ class LauncherDesigner(QWidget, UItemCreaterWindow):
         self.enable_widgets_radio.setChecked(state)
 
     def add_widget(self, widget_type):
+        # 统一处理 QGroupBox 的创建和样式应用
+        def create_styled_group_box(description, initial_enabled, widget_property_dict):
+            widget_group = QGroupBox(f"{description}")
+            widget_group.setStyleSheet(self.WIDGET_GROUP_STYLE)  # 应用通用样式
+            widget_group.setMinimumWidth(350)  # 设置最小宽度
+            widget_group.setMaximumWidth(500)  # 可以设置最大宽度
+
+            group_inner_layout = QHBoxLayout()
+            widget_group.setLayout(group_inner_layout)
+            group_inner_layout.setAlignment(Qt.AlignLeft)
+
+            enabled_toggle_btn = QRadioButton('启用')
+            enabled_toggle_btn.setChecked(initial_enabled)
+            group_inner_layout.addWidget(enabled_toggle_btn)
+
+            for key, value in widget_property_dict.items():
+                widget_group.setProperty(key, value)
+
+            return widget_group, group_inner_layout, enabled_toggle_btn
+
         if widget_type == 'button':
             dialog = ButtonConfigDialog(self)
             if dialog.exec_() == QDialog.Accepted:
@@ -119,25 +197,22 @@ class LauncherDesigner(QWidget, UItemCreaterWindow):
                     QMessageBox.warning(self, "无效参数", "无参参数的名称不能为空。")
                     return
 
-                widget_group = QGroupBox(f"{config['description']}")
-                group_inner_layout = QHBoxLayout()
-                widget_group.setLayout(group_inner_layout)
-
-                enabled_toggle_btn = QRadioButton('启用')
-                enabled_toggle_btn.setChecked(config["enabled"])
+                widget_property_dict = {
+                    "widget_type": "ConfigurableButton",
+                    "button_name": config["name"],
+                    "description_text": config["description"],
+                    "initial_enabled": config["enabled"]
+                }
+                widget_group, group_inner_layout, enabled_toggle_btn = create_styled_group_box(
+                    config["description"], config["enabled"], widget_property_dict
+                )
 
                 btn = QPushButton(config["name"])
                 btn.setEnabled(config["enabled"])
                 enabled_toggle_btn.toggled.connect(btn.setEnabled)
 
-                widget_group.setProperty("widget_type", "ConfigurableButton")
-                widget_group.setProperty("button_name", config["name"])
-                widget_group.setProperty("description_text", config["description"])
-                widget_group.setProperty("initial_enabled", config["enabled"])
-
-                group_inner_layout.addWidget(enabled_toggle_btn)
                 group_inner_layout.addWidget(btn)
-
+                group_inner_layout.addStretch(1)  # 增加伸缩空间，使按钮左对齐
                 self.design_layout.addWidget(widget_group)
 
         elif widget_type == 'combo':
@@ -149,31 +224,99 @@ class LauncherDesigner(QWidget, UItemCreaterWindow):
                     QMessageBox.warning(self, "无效参数", "有参参数必须至少包含一个参数内容。")
                     return
 
-                widget_group = QGroupBox(f"{config['description']}")
-                group_inner_layout = QHBoxLayout()
-                widget_group.setLayout(group_inner_layout)
-
-                enabled_toggle_btn = QRadioButton('启用')
-                enabled_toggle_btn.setChecked(config["enabled"])
+                widget_property_dict = {
+                    "widget_type": "ConfigurableComboBox",
+                    "combo_items": config["items"],
+                    "default_index": config["default_index"],
+                    "description_text": config["description"],
+                    "initial_enabled": config["enabled"]
+                }
+                widget_group, group_inner_layout, enabled_toggle_btn = create_styled_group_box(
+                    config["description"], config["enabled"], widget_property_dict
+                )
 
                 combo = QComboBox()
                 combo.addItems(config["items"])
                 if config["default_index"] < len(config["items"]) and config["default_index"] >= 0:
                     combo.setCurrentIndex(config["default_index"])
 
-                # FIX: Correctly use config["enabled"] instead of undefined initial_enabled
-                combo.setEnabled(config["enabled"]) # <-- 修正点
+                combo.setEnabled(config["enabled"])
                 enabled_toggle_btn.toggled.connect(combo.setEnabled)
 
-                widget_group.setProperty("widget_type", "ConfigurableComboBox")
-                widget_group.setProperty("combo_items", config["items"])
-                widget_group.setProperty("default_index", config["default_index"])
-                widget_group.setProperty("description_text", config["description"])
-                widget_group.setProperty("initial_enabled", config["enabled"])
-
-                group_inner_layout.addWidget(enabled_toggle_btn)
                 group_inner_layout.addWidget(combo)
+                group_inner_layout.addStretch(1)
+                self.design_layout.addWidget(widget_group)
 
+        # --- 新增：处理文件选择按钮的添加逻辑 ---
+        elif widget_type == 'file_select':
+            dialog = FileSelectConfigDialog(self)
+            if dialog.exec_() == QDialog.Accepted:
+                config = dialog.get_config()
+
+                if not config["description"].strip():
+                    QMessageBox.warning(self, "无效参数", "文件选择参数的说明不能为空。")
+                    return
+
+                widget_property_dict = {
+                    "widget_type": "ConfigurableFileSelect",
+                    "description_text": config["description"],
+                    "initial_path": config["initial_path"],
+                    "initial_enabled": config["enabled"]
+                }
+                widget_group, group_inner_layout, enabled_toggle_btn = create_styled_group_box(
+                    config["description"], config["enabled"], widget_property_dict
+                )
+
+                file_path_display = QLineEdit(config["initial_path"])
+                file_path_display.setReadOnly(True)
+                file_path_display.setPlaceholderText("未选择文件")
+                file_path_display.setEnabled(config["enabled"])
+
+                select_file_btn = QPushButton("选择文件")
+                select_file_btn.setEnabled(config["enabled"])
+
+                def open_file_dialog():
+                    options = QFileDialog.Options()
+                    file_name, _ = QFileDialog.getOpenFileName(self, "选择文件",
+                                                               file_path_display.text() if file_path_display.text() else "",
+                                                               "所有文件 (*);;文本文件 (*.txt)", options=options)
+                    if file_name:
+                        file_path_display.setText(file_name)
+
+                select_file_btn.clicked.connect(open_file_dialog)
+                enabled_toggle_btn.toggled.connect(file_path_display.setEnabled)
+                enabled_toggle_btn.toggled.connect(select_file_btn.setEnabled)
+
+                group_inner_layout.addWidget(file_path_display, 1)  # 伸缩因子
+                group_inner_layout.addWidget(select_file_btn)
+                self.design_layout.addWidget(widget_group)
+
+        # --- 新增：处理文本输入参数的添加逻辑 ---
+        elif widget_type == 'text_input':
+            dialog = TextInputConfigDialog(self)
+            if dialog.exec_() == QDialog.Accepted:
+                config = dialog.get_config()
+
+                if not config["description"].strip():
+                    QMessageBox.warning(self, "无效参数", "文本输入参数的说明不能为空。")
+                    return
+
+                widget_property_dict = {
+                    "widget_type": "ConfigurableTextInput",
+                    "description_text": config["description"],
+                    "default_text": config["default_text"],
+                    "initial_enabled": config["enabled"]
+                }
+                widget_group, group_inner_layout, enabled_toggle_btn = create_styled_group_box(
+                    config["description"], config["enabled"], widget_property_dict
+                )
+
+                text_input_field = QLineEdit(config["default_text"])
+                text_input_field.setPlaceholderText("请输入文本")
+                text_input_field.setEnabled(config["enabled"])
+                enabled_toggle_btn.toggled.connect(text_input_field.setEnabled)
+
+                group_inner_layout.addWidget(text_input_field, 1)  # 伸缩因子
                 self.design_layout.addWidget(widget_group)
 
     def _collect_ui_elements_data(self):
@@ -204,6 +347,22 @@ class LauncherDesigner(QWidget, UItemCreaterWindow):
                     "description": widget_group.property("description_text"),
                     "items": widget_group.property("combo_items"),
                     "default_index": widget_group.property("default_index"),
+                    "initial_enabled": widget_group.property("initial_enabled")
+                })
+            # --- 新增：收集文件选择按钮的数据 ---
+            elif widget_type == "ConfigurableFileSelect":
+                ui_elements_data.append({
+                    "type": "FileSelectButton",
+                    "description": widget_group.property("description_text"),
+                    "initial_path": widget_group.property("initial_path"),
+                    "initial_enabled": widget_group.property("initial_enabled")
+                })
+            # --- 新增：收集文本输入框的数据 ---
+            elif widget_type == "ConfigurableTextInput":
+                ui_elements_data.append({
+                    "type": "TextInput",
+                    "description": widget_group.property("description_text"),
+                    "default_text": widget_group.property("default_text"),
                     "initial_enabled": widget_group.property("initial_enabled")
                 })
         return ui_elements_data
@@ -255,7 +414,9 @@ class LauncherDesigner(QWidget, UItemCreaterWindow):
         self.preview_window.setLayout(preview_layout)
 
         action_display_label = QLabel('点击运行按钮查看启用项')
-        action_display_label.setStyleSheet("font-weight: bold; color: blue;")
+        # 移除了这里的特定颜色设置，让它继承默认样式
+        # action_display_label.setStyleSheet("font-weight: bold; color: blue;")
+        action_display_label.setStyleSheet("font-weight: bold;")  # 仅保留粗体
         preview_layout.addWidget(action_display_label)
 
         # Calling the method inherited from UiBuilderMixin
@@ -280,6 +441,7 @@ class MainWindow(QWidget, UItemCreaterWindow):
 
         top_label = QLabel("欢迎使用我的集成应用程序！")
         top_label.setAlignment(Qt.AlignCenter)
+        # 移除了这里的特定颜色设置
         top_label.setStyleSheet("font-size: 20px; font-weight: bold; padding: 10px;")
         main_layout.addWidget(top_label)
 
@@ -320,6 +482,7 @@ class MainWindow(QWidget, UItemCreaterWindow):
 
         bottom_label = QLabel("这是主窗口的底部区域。")
         bottom_label.setAlignment(Qt.AlignRight)
+        # 移除了这里的特定颜色设置
         main_layout.addWidget(bottom_label)
 
     def _on_enable_designer(self):
@@ -343,7 +506,8 @@ class MainWindow(QWidget, UItemCreaterWindow):
     def _on_get_designer_data(self):
         ui_data = self.designer_component.get_ui_description_data()
         if ui_data:
-            QMessageBox.information(self, "设计器UI数据", f"已从设计器获取到 {len(ui_data)} 个UI元素：\n{ui_data}")
+            QMessageBox.information(self, "设计器UI数据",
+                                    f"已从设计器获取到UI元素：\n{json.dumps(json.loads(ui_data), indent=2, ensure_ascii=False)}")
         else:
             QMessageBox.information(self, "设计器UI数据", "设计器中当前没有UI元素数据。")
 
@@ -362,7 +526,9 @@ class MainWindow(QWidget, UItemCreaterWindow):
                 loaded_ui_window.setLayout(loaded_ui_layout)
 
                 action_display_label = QLabel('点击运行按钮查看启用项')
-                action_display_label.setStyleSheet("font-weight: bold; color: green;")
+                # 移除了这里的特定颜色设置
+                # action_display_label.setStyleSheet("font-weight: bold; color: green;")
+                action_display_label.setStyleSheet("font-weight: bold;")  # 仅保留粗体
                 loaded_ui_layout.addWidget(action_display_label)
 
                 # Calling the method inherited from UiBuilderMixin
@@ -370,7 +536,8 @@ class MainWindow(QWidget, UItemCreaterWindow):
 
                 run_all_button = QPushButton('运行所有功能')
                 # Reuse the _run_preview_action logic from UiBuilderMixin
-                run_all_button.clicked.connect(lambda: self._run_preview_action(all_widgets_for_preview, action_display_label))
+                run_all_button.clicked.connect(
+                    lambda: self._run_preview_action(all_widgets_for_preview, action_display_label))
                 loaded_ui_layout.addWidget(run_all_button)
 
                 loaded_ui_window.show()
@@ -399,6 +566,7 @@ class PyQtUIDesignerApp:
         self._main_window = MainWindow()
         self._main_window.show()
         sys.exit(self._app.exec_())
+
 
 # --- 如果 app_core.py 自身作为主程序运行，提供直接启动的入口 ---
 if __name__ == '__main__':

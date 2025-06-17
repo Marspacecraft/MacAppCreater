@@ -1,18 +1,30 @@
 [
   {
     "type": "Button",
-    "name": "-s",
-    "description": "萨法的",
+    "name": "-s ",
+    "description": "启动",
     "initial_enabled": true
   },
   {
     "type": "ComboBox",
-    "description": "啊手动分",
+    "description": "种植",
     "items": [
-      "--ss ddd",
-      "--ss dddf"
+      "--h ver",
+      "--h her"
     ],
-    "default_index": 0,
+    "default_index": 1,
+    "initial_enabled": true
+  },
+  {
+    "type": "FileSelectButton",
+    "description": "选择文件",
+    "initial_path": "",
+    "initial_enabled": true
+  },
+  {
+    "type": "TextInput",
+    "description": "输入参数",
+    "default_text": "",
     "initial_enabled": true
   }
 ]

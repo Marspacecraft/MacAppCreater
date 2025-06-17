@@ -48,7 +48,7 @@ class ButtonConfigDialog(QDialog):
         return {
             "name": self.name_input.text(),
             "description": self.desc_input.text(),
-            "enabled": self.enabled_radio.isChecked()
+            "initial_enabled": self.enabled_radio.isChecked() # Consistent key
         }
 
 
@@ -137,9 +137,92 @@ class ComboConfigDialog(QDialog):
             "items": items,
             "default_index": default_index if default_index != -1 else 0,
             "description": self.desc_input.text(),
-            "enabled": self.enabled_radio.isChecked()
+            "initial_enabled": self.enabled_radio.isChecked() # Consistent key
         }
 
+
+# --- 新增 FileSelectConfigDialog 类 ---
+class FileSelectConfigDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("添加文件选择参数")
+        self.layout = QVBoxLayout()
+
+        self.desc_label = QLabel("参数说明:")
+        self.desc_input = QLineEdit("")
+        self.layout.addWidget(self.desc_label)
+        self.layout.addWidget(self.desc_input)
+
+        self.initial_path_label = QLabel("默认路径 (可选):")
+        self.initial_path_input = QLineEdit("")
+        self.layout.addWidget(self.initial_path_label)
+        self.layout.addWidget(self.initial_path_input)
+
+        self.enabled_group_box = QGroupBox("初始状态")
+        self.enabled_layout = QHBoxLayout()
+        self.enabled_radio = QRadioButton("启用")
+        self.disabled_radio = QRadioButton("禁用")
+        self.enabled_radio.setChecked(True)
+        self.enabled_layout.addWidget(self.enabled_radio)
+        self.enabled_layout.addWidget(self.disabled_radio)
+        self.enabled_group_box.setLayout(self.enabled_layout)
+        self.layout.addWidget(self.enabled_group_box)
+
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        self.layout.addWidget(self.button_box)
+
+        self.setLayout(self.layout)
+
+    def get_config(self):
+        return {
+            "description": self.desc_input.text(),
+            "initial_path": self.initial_path_input.text(),
+            "initial_enabled": self.enabled_radio.isChecked() # Consistent key
+        }
+
+
+# --- 新增 TextInputConfigDialog 类 ---
+class TextInputConfigDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("添加文本输入参数")
+        self.layout = QVBoxLayout()
+
+        self.desc_label = QLabel("参数说明:")
+        self.desc_input = QLineEdit("")
+        self.layout.addWidget(self.desc_label)
+        self.layout.addWidget(self.desc_input)
+
+        self.default_text_label = QLabel("默认文本 (可选):")
+        self.default_text_input = QLineEdit("")
+        self.layout.addWidget(self.default_text_label)
+        self.layout.addWidget(self.default_text_input)
+
+        self.enabled_group_box = QGroupBox("初始状态")
+        self.enabled_layout = QHBoxLayout()
+        self.enabled_radio = QRadioButton("启用")
+        self.disabled_radio = QRadioButton("禁用")
+        self.enabled_radio.setChecked(True)
+        self.enabled_layout.addWidget(self.enabled_radio)
+        self.enabled_layout.addWidget(self.disabled_radio)
+        self.enabled_group_box.setLayout(self.enabled_layout)
+        self.layout.addWidget(self.enabled_group_box)
+
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        self.layout.addWidget(self.button_box)
+
+        self.setLayout(self.layout)
+
+    def get_config(self):
+        return {
+            "description": self.desc_input.text(),
+            "default_text": self.default_text_input.text(),
+            "initial_enabled": self.enabled_radio.isChecked() # Consistent key
+        }
 
 # --- LauncherDesigner 类 (假设这是你的UI设计器部分) ---
 class LauncherDesigner(QWidget):
@@ -151,6 +234,7 @@ class LauncherDesigner(QWidget):
         # 一个示例标签，表示 LauncherDesigner 的内容
         self.title_label = QLabel("启动参数")
         self.title_label.setAlignment(Qt.AlignCenter)
+        self.title_label.setStyleSheet("font-size: 20px; font-weight: bold; padding: 10px; color: red;")
         self.main_layout.addWidget(self.title_label)
 
         # 创建一个 QScrollArea 来包裹动态生成的UI元素
@@ -187,8 +271,7 @@ class LauncherDesigner(QWidget):
                 self._clear_layout(item.layout())
 
         self.generated_widgets_info = self._parse_ui_elements_data_and_create_widgets(
-            ui_elements_data, self.scroll_content_layout
-        )
+            ui_elements_data, self.scroll_content_layout)
         self.run_preview_action() # Update preview after loading elements
 
     def _clear_layout(self, layout):
@@ -213,7 +296,7 @@ class LauncherDesigner(QWidget):
             if widget_type == "Button":
                 name = element.get("name", "未知参数")
                 description = element.get("description", "")
-                initial_enabled = element.get("enabled", True) # Corrected to 'enabled'
+                initial_enabled = element.get("initial_enabled", True)
 
                 widget_group = QGroupBox(f"{description}")
                 group_inner_layout = QHBoxLayout()
@@ -237,7 +320,7 @@ class LauncherDesigner(QWidget):
                 description = element.get("description", "未知有参参数")
                 items = element.get("items", [])
                 default_index = element.get("default_index", 0)
-                initial_enabled = element.get("enabled", True) # Corrected to 'enabled'
+                initial_enabled = element.get("initial_enabled", True)
 
                 widget_group = QGroupBox(f"{description}")
                 group_inner_layout = QHBoxLayout()
@@ -261,7 +344,78 @@ class LauncherDesigner(QWidget):
                 group_inner_layout.addWidget(combo)
                 target_layout.addWidget(widget_group)
                 all_widgets_for_preview.append((combo, f"{description}"))
+
+            elif widget_type == "FileSelectButton":
+                description = element.get("description", "未知文件选择")
+                initial_path = element.get("initial_path", "")
+                initial_enabled = element.get("initial_enabled", True)
+
+                widget_group = QGroupBox(f"{description}")
+                group_inner_layout = QHBoxLayout()
+                widget_group.setLayout(group_inner_layout)
+                group_inner_layout.setAlignment(Qt.AlignLeft)
+
+                enabled_toggle_btn = QRadioButton('启用')
+                enabled_toggle_btn.setChecked(initial_enabled)
+
+                file_path_input = QLineEdit(initial_path)
+                file_path_input.setPlaceholderText("选择文件路径...")
+                file_path_input.setReadOnly(True) # Make it read-only
+                file_path_input.setStyleSheet("color: red;")
+
+                select_file_btn = QPushButton("选择文件")
+                # 使用lambda捕获file_path_input，确保clicked信号连接到正确的QLineEdit
+                select_file_btn.clicked.connect(lambda _, input_field=file_path_input: self._select_file(input_field))
+
+                file_path_input.setEnabled(initial_enabled)
+                select_file_btn.setEnabled(initial_enabled)
+
+                enabled_toggle_btn.toggled.connect(file_path_input.setEnabled)
+                enabled_toggle_btn.toggled.connect(select_file_btn.setEnabled)
+                enabled_toggle_btn.toggled.connect(self.run_preview_action)
+                file_path_input.textChanged.connect(self.run_preview_action) # Update preview if path changes
+
+                group_inner_layout.addWidget(enabled_toggle_btn)
+                group_inner_layout.addWidget(file_path_input)
+                group_inner_layout.addWidget(select_file_btn)
+                target_layout.addWidget(widget_group)
+                # 将QLineEdit和描述添加到预览列表
+                all_widgets_for_preview.append((file_path_input, f"{description}"))
+
+            elif widget_type == "TextInput":
+                description = element.get("description", "未知文本输入")
+                default_text = element.get("default_text", "")
+                initial_enabled = element.get("initial_enabled", True)
+
+                widget_group = QGroupBox(f"{description}")
+                group_inner_layout = QHBoxLayout()
+                widget_group.setLayout(group_inner_layout)
+                group_inner_layout.setAlignment(Qt.AlignLeft)
+
+                enabled_toggle_btn = QRadioButton('启用')
+                enabled_toggle_btn.setChecked(initial_enabled)
+
+                text_input = QLineEdit(default_text)
+                text_input.setPlaceholderText("请输入参数...")
+                text_input.setStyleSheet("color: red;")
+
+                text_input.setEnabled(initial_enabled)
+                enabled_toggle_btn.toggled.connect(text_input.setEnabled)
+                enabled_toggle_btn.toggled.connect(self.run_preview_action)
+                text_input.textChanged.connect(self.run_preview_action) # Update preview on text change
+
+                group_inner_layout.addWidget(enabled_toggle_btn)
+                group_inner_layout.addWidget(text_input)
+                target_layout.addWidget(widget_group)
+                # 将QLineEdit和描述添加到预览列表
+                all_widgets_for_preview.append((text_input, f"{description}"))
         return all_widgets_for_preview
+
+    def _select_file(self, file_path_input_widget):
+        """Opens a file dialog and sets the selected file path to the QLineEdit."""
+        file_path, _ = QFileDialog.getOpenFileName(self, "选择文件")
+        if file_path:
+            file_path_input_widget.setText(file_path)
 
     def run_preview_action(self):
         """
@@ -269,14 +423,13 @@ class LauncherDesigner(QWidget):
         """
         enabled_items_info = []
         for widget_instance, name_or_desc in self.generated_widgets_info:
-            # Check if the parent QGroupBox's QRadioButton is checked
-            # Assuming the structure is QGroupBox -> QHBoxLayout -> QRadioButton & Widget
+            # 检查父QGroupBox中的QRadioButton是否被选中
             parent_group_box = widget_instance.parentWidget()
             if parent_group_box and isinstance(parent_group_box, QGroupBox):
-                # Find the QRadioButton within the group box
+                # 在QGroupBox中查找“启用”QRadioButton
                 radio_button_found = False
                 for child in parent_group_box.findChildren(QRadioButton):
-                    if child.text() == '启用': # Check for the '启用' radio button
+                    if child.text() == '启用':
                         if child.isChecked():
                             radio_button_found = True
                             break
@@ -285,7 +438,11 @@ class LauncherDesigner(QWidget):
                         enabled_items_info.append(
                             f"{name_or_desc} ({widget_instance.currentText()})")
                     elif isinstance(widget_instance, QPushButton):
-                        enabled_items_info.append(name_or_desc)
+                        # 对于按钮，我们通常只关心它被启用，其name就是参数本身
+                        enabled_items_info.append(widget_instance.text())
+                    elif isinstance(widget_instance, QLineEdit): # 对于FileSelectButton和TextInput
+                        if widget_instance.text(): # 只有当QLineEdit有文本时才添加
+                            enabled_items_info.append(f"{name_or_desc} ({widget_instance.text()})")
 
         if enabled_items_info:
             self.preview_display_label.setText("启用的参数: " + ", ".join(enabled_items_info))
@@ -294,8 +451,8 @@ class LauncherDesigner(QWidget):
 
     def get_selected_parameters(self):
         """
-        Collects the currently selected parameters and their values.
-        Returns a dictionary suitable for passing to execution logic.
+        收集当前选中的参数及其值。
+        返回一个适合传递给执行逻辑的字典。
         """
         selected_params = {}
         for widget_instance, original_name in self.generated_widgets_info:
@@ -308,11 +465,17 @@ class LauncherDesigner(QWidget):
                         break
                 if radio_button_found:
                     if isinstance(widget_instance, QComboBox):
-                        # For ComboBox, store its description and selected value
+                        # 对于ComboBox，使用其当前选中的文本
+                        # 注意：这里可能需要根据实际命令行参数格式进行调整
+                        # 如果需要参数名称+值，则可以是 original_name + " " + widget_instance.currentText()
                         selected_params[widget_instance.currentText()] = True
                     elif isinstance(widget_instance, QPushButton):
-                        # For Button, store its name as a key and a boolean indicating it's enabled
+                        # 对于Button，使用其按钮文本作为参数
                         selected_params[widget_instance.text()] = True
+                    elif isinstance(widget_instance, QLineEdit):
+                        # 对于FileSelectButton和TextInput，使用其文本内容
+                        if widget_instance.text():
+                            selected_params[widget_instance.text()] = True
         return selected_params
 
 
@@ -344,14 +507,78 @@ class MainWindow(QWidget):
         self.is_local_python = True
         self.python_param = ""
         self.initUI()
-
+        # 定义通用的样式表字符串
+    WIDGET_GROUP_STYLE = """
+            QGroupBox {
+                border: 1px solid #c0c0c0; /* 柔和的边框 */
+                border-radius: 5px; /* 圆角 */
+                margin-top: 10px; /* 顶部外边距 */
+                padding-top: 15px; /* 内部上边距，为标题留出空间 */
+                padding-left: 10px;
+                padding-right: 10px;
+                padding-bottom: 10px;
+                font-size: 14px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left; /* 标题位置 */
+                padding: 0 5px; /* 标题内边距 */
+                /* color: #333333; */ /* 移除标题颜色 */
+                border-radius: 3px;
+            }
+            QRadioButton {
+                spacing: 5px;
+                font-size: 13px;
+                /* color: #555555; */ /* 移除文字颜色 */
+            }
+            QPushButton {
+                min-width: 80px; /* 调整按键的最小宽度 */
+                padding: 5px 10px;
+                border-radius: 4px;
+                border: 1px solid #cccccc;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #d0d0d0; /* 悬停时仍可有背景色 */
+            }
+            QPushButton:pressed {
+                background-color: #c0c0c0; /* 按下时仍可有背景色 */
+            }
+            QPushButton:disabled {
+                color: #aaaaaa;
+                border-color: #e0e0e0;
+            }
+            QLineEdit {
+                padding: 5px;
+                border: 1px solid #cccccc;
+                border-radius: 4px;
+                font-size: 13px;
+            }
+            QLineEdit:read-only {
+                background-color: #eeeeee; /* 只读文本框可以保留浅背景色 */
+                /* color: #666666; */ /* 移除只读文本框的颜色 */
+            }
+            QComboBox {
+                min-width: 120px; /* 调整下拉菜单的最小宽度 */
+                padding: 5px;
+                border: 1px solid #cccccc;
+                border-radius: 4px;
+                font-size: 13px;
+            }
+            QComboBox::drop-down {
+                border-left: 1px solid #cccccc;
+            }
+            QLabel {
+                /* color: black; */ /* 移除 QLabel 的默认颜色设置 */
+            }
+        """
     def initUI(self):
         # 设置窗口标题
         self.setWindowTitle('启动器')
         # 设置窗口大小
-        self.setGeometry(50, 300, 300, 400)
+        self.setGeometry(50, 300, 500, 700)
         self.center_on_screen()
-
+        self.setStyleSheet(self.WIDGET_GROUP_STYLE)
         # 创建主布局
         main_layout = QVBoxLayout()
 
@@ -416,7 +643,7 @@ class MainWindow(QWidget):
     def get_runcmd(self):
         current_script_dir = os.path.dirname(os.path.abspath(__file__))
         # 构建 UI.json 的完整路径
-        cmd = [os.path.join(current_script_dir, "Callor")]
+        cmd = [os.path.join(current_script_dir, "Callor")] # 假设这是你的可执行文件
         selected_params = self.launcherdesigner.get_selected_parameters()
         if selected_params:
             param_strings = [f"{k}" for k, v in selected_params.items()]
@@ -484,6 +711,7 @@ class MainWindow(QWidget):
     def run_terminal_cmd(self, cmd):
         import shlex
         script_command = ' '.join(cmd)
+        # 适用于macOS的AppleScript，用于在终端中运行命令
         apple_script = f'''
             tell application "Terminal"
                 do script "{script_command}"
@@ -497,52 +725,59 @@ class MainWindow(QWidget):
         在指定的 Conda 环境中运行 Python 脚本。
         Args:
             env_name (str): 要激活的 Conda 环境的名称。
-            cmd: 要运行的 Python 脚本的路径和参数。
+            cmd (list): 要运行的 Python 脚本的路径和参数。
         """
         # 查找 Conda 的初始化脚本
-        # result = self.run_cmd(['conda', 'info', '--base'])
         result = self.run_cmd(['bash', '-c', 'source $HOME/.zshrc && conda info --base'])
+        if result is None:
+            QMessageBox.information(self, "Conda 启动失败", "无法获取 Conda 基础路径。")
+            return None
+
         conda_base_path = result.stdout.strip()
         conda_sh_path = os.path.join(conda_base_path, 'etc', 'profile.d', 'conda.sh')
 
         if not os.path.exists(conda_sh_path):
             print(f"Error: conda.sh not found at {conda_sh_path}", file=sys.stderr)
-            QMessageBox.information(self, "condaq启动失败", f"无法读取conda.sh文件")
+            QMessageBox.information(self, "Conda 启动失败", f"无法读取 conda.sh 文件: {conda_sh_path}")
             return None
 
         # 构建激活环境和运行脚本的命令
-        # 构建完整的命令字符串
-        command = [
-            'bash', '-c',
-            f'source {conda_sh_path} && conda activate {env_name} && python {cmd[0]} {cmd[1]}'
-        ]
+        # 注意：cmd[0] 是脚本路径，cmd[1]是参数字符串
+        command_str = f"source {conda_sh_path} && conda activate {env_name} && python {cmd[0]} {cmd[1]}"
+        command = ['bash', '-c', command_str]
         return self.run_cmd(command)
 
     def run_terminal_in_conda(self, env_name, cmd):
         """
-                在指定的 Conda 环境中运行 Python 脚本。
-                Args:
-                    env_name (str): 要激活的 Conda 环境的名称。
-                    cmd: 要运行的 Python 脚本的路径和参数。
-                """
-        # 查找 Conda 的初始化脚本
+        在指定的 Conda 环境的终端中运行 Python 脚本。
+        Args:
+            env_name (str): 要激活的 Conda 环境的名称。
+            cmd (list): 要运行的 Python 脚本的路径和参数。
+        """
         result = self.run_cmd(['bash', '-c', 'source $HOME/.zshrc && conda info --base'])
+        if result is None:
+            QMessageBox.information(self, "Conda 启动失败", "无法获取 Conda 基础路径。")
+            return None
+
         conda_base_path = result.stdout.strip()
         conda_sh_path = os.path.join(conda_base_path, 'etc', 'profile.d', 'conda.sh')
 
         if not os.path.exists(conda_sh_path):
             print(f"Error: conda.sh not found at {conda_sh_path}", file=sys.stderr)
-            QMessageBox.information(self, "condaq启动失败", f"无法读取conda.sh文件")
+            QMessageBox.information(self, "Conda 启动失败", f"无法读取 conda.sh 文件: {conda_sh_path}")
             return None
 
-        # 构建激活环境和运行脚本的命令
-        # 构建完整的命令字符串
-        command = [
-            'bash', '-c',
-            f'\\"source {conda_sh_path} && conda activate {env_name} && python {cmd[0]} {cmd[1]}\\"'
-        ]
+        # 构建在终端中运行的 AppleScript 命令
+        command_str = f"source {conda_sh_path} && conda activate {env_name} && python {cmd[0]} {cmd[1]}"
+        # 将整个命令字符串作为 do script 的参数传递
+        apple_script = f'''
+            tell application "Terminal"
+                do script "{command_str}"
+                activate
+            end tell
+        '''
+        return self.run_cmd(['osascript', '-e', apple_script])
 
-        return self.run_terminal_cmd(command)
 
     def run_silent(self):
         """
@@ -550,9 +785,8 @@ class MainWindow(QWidget):
         收集启用的参数并执行相应逻辑
         """
         cmd = self.get_runcmd()
-        # QMessageBox.information(self, "静默运行", f"将以静默模式运行以下参数:\n{' '.join(cmd)}")
         if self.read_config() is False:
-            QMessageBox.information(self, "文件损坏", f"无法读取配置文件")
+            QMessageBox.information(self, "文件损坏", "无法读取配置文件。")
             return
 
         if self.is_python_script:
@@ -560,16 +794,17 @@ class MainWindow(QWidget):
                 sub_run = [self.python_param, cmd[0], cmd[1]]
                 result = self.run_cmd(sub_run)
                 if result is not None:
-                    QMessageBox.information(self, "执行完成", f"执行结果\n{result.stdout}")
+                    QMessageBox.information(self, "执行完成", f"执行结果:\n{result.stdout}")
             else:
                 result = self.run_cmd_in_conda(self.python_param, cmd)
                 if result is not None:
-                    QMessageBox.information(self, "执行完成", f"执行结果\n{result.stdout}")
+                    QMessageBox.information(self, "执行完成", f"执行结果:\n{result.stdout}")
         else:
-            sub_run=["bash", "-c", ' '.join(cmd)]
+            # 对于非Python脚本，直接运行 cmd
+            sub_run = ["bash", "-c", ' '.join(cmd)]
             result = self.run_cmd(sub_run)
             if result is not None:
-                QMessageBox.information(self, "执行完成", f"执行结果\n{result.stdout}")
+                QMessageBox.information(self, "执行完成", f"执行结果:\n{result.stdout}")
 
     def run_terminal(self):
         """
@@ -577,9 +812,8 @@ class MainWindow(QWidget):
         收集启用的参数并执行相应逻辑
         """
         cmd = self.get_runcmd()
-        # QMessageBox.information(self, "终端运行", f"将以终端模式运行以下参数:\n{' '.join(cmd)}")
         if self.read_config() is False:
-            QMessageBox.information(self, "文件损坏", f"无法读取配置文件")
+            QMessageBox.information(self, "文件损坏", "无法读取配置文件。")
             return
 
         if self.is_python_script:
@@ -589,25 +823,12 @@ class MainWindow(QWidget):
             else:
                 self.run_terminal_in_conda(self.python_param, cmd)
         else:
-            sub_run = ["bash", ' '.join(cmd)]
+            # 对于非Python脚本，直接在终端中运行
+            # 如此复杂的表达式是为了将“”穿透到终端，执行传递到bash -c "xxx"
+            sub_run = ["bash", "-c", f"\\\"{' '.join(cmd)}\\\""] # 使用 -c 确保命令被正确解释
             self.run_terminal_cmd(sub_run)
 
 if __name__ == '__main__':
-    # 为了避免在程序启动时没有 Resources/UI.json 文件而报错，先创建目录和空文件
-    current_script_dir = os.path.dirname(os.path.abspath(__file__))
-    resources_dir = os.path.join(current_script_dir, "Resources")
-    config_file_path = os.path.join(resources_dir, "UI.json") # Changed to UI.json
-
-    if not os.path.exists(resources_dir):
-        os.makedirs(resources_dir)
-        print(f"创建目录: {resources_dir}")
-
-    if not os.path.exists(config_file_path):
-        with open(config_file_path, 'w', encoding='utf-8') as f:
-            f.write("[]")  # 写入一个空的 JSON 数组作为初始内容
-        print(f"创建空的 UI.json 文件: {config_file_path}")
-        QMessageBox.information(None, "提示", f"已创建空的配置文件: {config_file_path}\n请编辑此文件以添加UI元素。")
-
     app = QApplication(sys.argv)
     main_win = MainWindow()
     main_win.show()

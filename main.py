@@ -8,17 +8,20 @@ from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPixmap
 from Launcher import LauncherDesigner # 确保从 Launcher.py 导入 LauncherDesigner
 from AppCreater import AppCreaterWindow
-from MyUI import UItemCreaterWindow
+from MyUI import UItemCreaterWindow # 导入 UItemCreaterWindow
 
-class MainWindow(QWidget, UItemCreaterWindow):
+class MainWindow(QWidget, UItemCreaterWindow): # 继承 UItemCreaterWindow
     def __init__(self, parent=None):
         super().__init__(parent)
         self.exe_path = ""
         self.png_path = ""
 
         self.setWindowTitle('MacAppCreater')
-        self.setGeometry(50, 80, 450, 400) # 设置初始大小
+        self.setGeometry(50, 80, 400, 400) # 设置初始大小
         self.center_on_screen()
+
+        # 应用 MyUI.py 中定义的通用样式
+        self.setStyleSheet(self.WIDGET_GROUP_STYLE)
 
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
@@ -26,38 +29,49 @@ class MainWindow(QWidget, UItemCreaterWindow):
         # 顶部标签
         top_label = QLabel("欢迎使用Mac app生成器")
         top_label.setAlignment(Qt.AlignCenter)
-        top_label.setStyleSheet("font-size: 20px; font-weight: bold; padding: 10px;")
+        top_label.setStyleSheet("font-size: 20px; font-weight: bold; padding: 10px; color: red;")
         main_layout.addWidget(top_label)
 
-        # 执行文件选择区域
+        # 执行文件选择区域 - 使用 QGroupBox 包裹以应用样式
+        executable_group = QGroupBox("选择执行文件")
+        executable_group.setStyleSheet(self.WIDGET_GROUP_STYLE) # 应用样式
         executable_selection_layout = QHBoxLayout()
+        executable_group.setLayout(executable_selection_layout)
+
+
         self.executable_path_display = QLineEdit()
         self.executable_path_display.setPlaceholderText("未选择执行文件")
         self.executable_path_display.setReadOnly(True) # 设置为只读
         executable_selection_layout.addWidget(self.executable_path_display)
+        self.executable_path_display.setStyleSheet("color: red;")
 
-        self.select_file_button = QPushButton("选择执行文件") # 将按钮保存为实例属性
+        self.select_file_button = QPushButton("选择文件") # 修改按钮文本以统一风格
         self.select_file_button.clicked.connect(self.select_executable_file)
         executable_selection_layout.addWidget(self.select_file_button)
+        main_layout.addWidget(executable_group)
 
-        main_layout.addLayout(executable_selection_layout)
 
         # 实例化 Designer 作为组件
         self.launcherdesigner = LauncherDesigner(self) # 将 self 作为父级传入
         main_layout.addWidget(self.launcherdesigner)
 
-        # 图标选择区域
+        # 图标选择区域 - 使用 QGroupBox 包裹以应用样式
+        icon_group = QGroupBox("选择应用图标") # 修改组框标题
+        icon_group.setStyleSheet(self.WIDGET_GROUP_STYLE) # 应用样式
         icon_selection_layout = QHBoxLayout()
+        icon_group.setLayout(icon_selection_layout)
+
         self.icon_path_display = QLineEdit()
         self.icon_path_display.setPlaceholderText("未选择图标文件 (仅支持PNG)")
         self.icon_path_display.setReadOnly(True) # 设置为只读
         icon_selection_layout.addWidget(self.icon_path_display)
+        self.icon_path_display.setStyleSheet("color: blue;")
 
-        self.select_icon_button = QPushButton("选择图标图片") # 将按钮保存为实例属性
+        self.select_icon_button = QPushButton("选择图标") # 修改按钮文本以统一风格
         self.select_icon_button.clicked.connect(self.select_icon_file)
         icon_selection_layout.addWidget(self.select_icon_button)
+        main_layout.addWidget(icon_group)
 
-        main_layout.addLayout(icon_selection_layout)
 
         # 默认禁用图标选择控件
         self.icon_path_display.setEnabled(False)
