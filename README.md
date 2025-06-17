@@ -81,4 +81,4 @@ brew install  --cask miniconda
 ffmpeg $@
 ```
 
-![](https://github.com/Marspacecraft/MacAppCreater/blob/main/pic/5.png)
+![](https://github.com/Marspacecraft/MacAppCreater/blob/main/pic/4.png)
