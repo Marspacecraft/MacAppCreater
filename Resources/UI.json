@@ -1,0 +1,18 @@
+[
+  {
+    "type": "Button",
+    "name": "-s",
+    "description": "萨法的",
+    "initial_enabled": true
+  },
+  {
+    "type": "ComboBox",
+    "description": "啊手动分",
+    "items": [
+      "--ss ddd",
+      "--ss dddf"
+    ],
+    "default_index": 0,
+    "initial_enabled": true
+  }
+]
