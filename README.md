@@ -32,6 +32,8 @@ brew install  --cask miniconda
 
 ## 使用
 
+![](https://github.com/Marspacecraft/MacAppCreater/blob/main/pic/1.png)
+
 - step1:运行`main.py`
 
 - step2:选择需要运行的程序
@@ -42,6 +44,8 @@ brew install  --cask miniconda
 
 - step5点击生成
 
+![](https://github.com/Marspacecraft/MacAppCreater/blob/main/pic/2.png)
+
 - step6:设置App名称
 
 - step7:如果是无参数运行python，可以选择本地python还是conda环境
@@ -50,7 +54,11 @@ brew install  --cask miniconda
 
 - step9:点击生成App
 
+![](https://github.com/Marspacecraft/MacAppCreater/blob/main/pic/5.png)
+
 ## 运行
+
+![](https://github.com/Marspacecraft/MacAppCreater/blob/main/pic/3.png)
 
 - 第一次运行会失败，再次运行即可
 
@@ -72,3 +80,5 @@ brew install  --cask miniconda
 
 ffmpeg $@
 ```
+
+![](https://github.com/Marspacecraft/MacAppCreater/blob/main/pic/5.png)
