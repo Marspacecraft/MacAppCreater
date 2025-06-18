@@ -16,19 +16,34 @@
 
 ## 安装
 
-- 安装PyQt5
+- 程序默认都是运行brew安装的python，如果没有用brew安装过python，使用系统自带python
+- 默认python环境如果没有安装依赖，参数配置的启动器无法运行
+- 查看默认python
+
+```bash
+which python3
+
+# 显示类似 /opt/homebrew/bin/python3 说明默认用的是brew安装的python
+# 显示类似 /usr/bin/python3 说明默认用的是系统自带的python
+```
+
+- brew安装
 
 ```bash
 brew install PyQt5
-```
-
-- 安装conda(可选)
-
-```bash
+brew install Pillow
+# 安装conda，可选
 brew install  --cask miniconda
 ```
 
-- 程序默认都是运行brew安装的python，如果没有用brew安装过python，使用系统自带python
+- 系统自带python
+
+```bash
+pip3 install PyQt5
+pip3 install Pillow
+```
+
+
 
 ## 使用
 
