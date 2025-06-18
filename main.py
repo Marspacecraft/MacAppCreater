@@ -1,14 +1,13 @@
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
-    QComboBox, QGroupBox, QLabel, QRadioButton, QMessageBox, QFileDialog,
-    QLineEdit, QDialog, QDialogButtonBox, QListWidget, QListWidgetItem
+    QGroupBox, QLabel, QFileDialog,
+    QLineEdit
 )
-from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtGui import QPixmap
-from Launcher import LauncherDesigner # 确保从 Launcher.py 导入 LauncherDesigner
-from AppCreater import AppCreaterWindow
-from MyUI import UItemCreaterWindow # 导入 UItemCreaterWindow
+from PyQt5.QtCore import Qt
+from Macos.Launcher import LauncherDesigner # 确保从 Launcher.py 导入 LauncherDesigner
+from Macos.AppCreater import AppCreaterWindow
+from Macos.MyUI import UItemCreaterWindow # 导入 UItemCreaterWindow
 
 class MainWindow(QWidget, UItemCreaterWindow): # 继承 UItemCreaterWindow
     def __init__(self, parent=None):

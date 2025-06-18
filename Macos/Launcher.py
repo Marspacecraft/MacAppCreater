@@ -5,11 +5,11 @@ import json
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
     QComboBox, QGroupBox, QLabel, QRadioButton, QMessageBox, QFileDialog,
-    QLineEdit, QDialog, QDialogButtonBox, QListWidget, QListWidgetItem
+    QLineEdit, QDialog
 )
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt
 # 从 MyUI.py 导入所需的类
-from MyUI import UItemCreaterWindow, ComboConfigDialog, ButtonConfigDialog, FileSelectConfigDialog, \
+from Macos.MyUI import UItemCreaterWindow, ComboConfigDialog, ButtonConfigDialog, FileSelectConfigDialog, \
     TextInputConfigDialog
 
 

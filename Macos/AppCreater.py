@@ -2,9 +2,9 @@ import sys
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QMessageBox, QFileDialog, QWidget, QApplication, QGroupBox, QRadioButton,
-    QComboBox, QListWidget, QListWidgetItem, QDialogButtonBox
+    QComboBox, QListWidget
 )
-from PyQt5.QtGui import QFont, QPixmap
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
 import subprocess
 import json
@@ -15,8 +15,7 @@ import shutil
 
 # Minimal UItemCreaterWindow for demonstration if MyUI.py is not present
 
-from MyUI import UItemCreaterWindow, ButtonConfigDialog, ComboConfigDialog
-
+from Macos.MyUI import UItemCreaterWindow
 
 
 class AppCreaterWindow(QDialog, UItemCreaterWindow):
@@ -44,6 +43,7 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
         self.executable_path = executable_path
         self.image_path = image_path
         self.json_data = json_data
+        self.resources_path = os.path.join(self._get_resource_base_path() , "../Resources")
 
         # Add instance variable to store run mode
         self.run_in_terminal = True  # Default to terminal run
@@ -54,6 +54,20 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
         # 让窗口根据内容的最佳大小提示进行调整。
         self.adjustSize()
 
+    def _get_resource_base_path(self):
+        """
+        获取打包后应用的资源根路径。
+        在开发环境中，它返回当前脚本所在的目录。
+        在 PyInstaller 打包的应用中，它返回 _MEIPASS。
+        """
+        try:
+            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            base_path = sys._MEIPASS
+        except AttributeError:
+            # For development environment, use the directory where the script is located
+            base_path = os.path.dirname(os.path.abspath(__file__))
+
+        return base_path
     def _create_runmode_widgets(self, main_layout):
         # --- Add Run Mode Selection when no JSON data is provided ---
         run_mode_group_box = QGroupBox("运行模式")
@@ -449,7 +463,7 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
             return False  # 返回 False 表示操作失败
 
         # 2. 复制 Caller 脚本到应用包
-        caller_source_file = "Caller/Caller.sh"
+        caller_source_file = os.path.join(self.resources_path,"Caller/Caller.sh")
         # 统一使用 "Caller" 作为目标文件名
         caller_destination_path = os.path.join(macos_path, "Caller.sh")
 
@@ -502,7 +516,7 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
 
         # 5. 复制启动器文件到应用包
         if self.generated_ui_widgets:
-            mylaunch_source_file = "Caller/MyLauncher.py"
+            mylaunch_source_file = os.path.join(self.resources_path,"Caller/MyLauncher.py")
             mylaunch_destination_path = os.path.join(macos_path, "MyLaunch")
 
             try:
@@ -586,8 +600,8 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
 # --- Start of the second provided code block (MainWindow) ---
 # Minimal LauncherDesigner and MyUI classes for demonstration
 try:
-    from Launcher import LauncherDesigner
-    from MyUI import UItemCreaterWindow  # Import UItemCreaterWindow (which should contain WIDGET_GROUP_STYLE)
+    from Macos.Launcher import LauncherDesigner
+    from Macos.MyUI import UItemCreaterWindow  # Import UItemCreaterWindow (which should contain WIDGET_GROUP_STYLE)
 except ImportError:
     print("Launcher.py or MyUI.py not found. Using minimal dummy classes for demonstration.")
 
