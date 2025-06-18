@@ -43,8 +43,6 @@ pip3 install PyQt5
 pip3 install Pillow
 ```
 
-
-
 ## 使用
 
 ![](https://github.com/Marspacecraft/MacAppCreater/blob/main/pic/1.png)
@@ -106,3 +104,7 @@ pyinstaller main.py --windowed --noconsole --icon=AppIcon.icns --add-data "Resou
 # 生成dmg
 create-dmg --volname "MacAppCreator Installer" --background "Resources/1.png" --window-pos 200 120 --window-size 800 500 --icon-size 100 --text-size 14 --icon "MacAppCreater.app" 200 200 --app-drop-link 600 200 --eula "LICENSE" "dist/MacAppCreaterInstaller.dmg" "dist/MacAppCreater.app"
 ```
+
+## 安装包
+
+[V1.01](https://github.com/Marspacecraft/MacAppCreater/releases/tag/1.01)
