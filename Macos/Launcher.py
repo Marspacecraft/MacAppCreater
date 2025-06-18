@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 # 从 MyUI.py 导入所需的类
-from Macos.MyUI import UItemCreaterWindow, ComboConfigDialog, ButtonConfigDialog, FileSelectConfigDialog, \
+from Resources.Caller.MyLauncher import UItemCreaterWindow, ComboConfigDialog, ButtonConfigDialog, FileSelectConfigDialog, \
     TextInputConfigDialog
 
 
@@ -106,7 +106,6 @@ class LauncherDesigner(QWidget, UItemCreaterWindow):
                 subcontrol-origin: margin;
                 subcontrol-position: top center;
                 padding: 0 5px;
-                /* color: #555555; */ /* 移除标题颜色 */
             }
         """)
         self.top_h_layout.addWidget(self.design_area)
@@ -428,147 +427,145 @@ class LauncherDesigner(QWidget, UItemCreaterWindow):
 
         self.preview_window.show()
 
-
-# --- 新的 MainWindow 类，作为顶层窗口来容纳 Designer 组件 ---
-class MainWindow(QWidget, UItemCreaterWindow):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle('我的主应用程序 - 参数命令集成')
-        self.setGeometry(100, 100, 1000, 700)
-
-        main_layout = QVBoxLayout()
-        self.setLayout(main_layout)
-
-        top_label = QLabel("欢迎使用我的集成应用程序！")
-        top_label.setAlignment(Qt.AlignCenter)
-        # 移除了这里的特定颜色设置
-        top_label.setStyleSheet("font-size: 20px; font-weight: bold; padding: 10px;")
-        main_layout.addWidget(top_label)
-
-        self.designer_component = LauncherDesigner(self)
-        main_layout.addWidget(self.designer_component)
-
-        control_designer_layout = QHBoxLayout()
-        self.enable_designer_btn = QPushButton("启用设计器")
-        self.enable_designer_btn.clicked.connect(self._on_enable_designer)
-        control_designer_layout.addWidget(self.enable_designer_btn)
-
-        self.disable_designer_btn = QPushButton("禁用设计器")
-        self.disable_designer_btn.clicked.connect(self._on_disable_designer)
-        control_designer_layout.addWidget(self.disable_designer_btn)
-
-        self.query_designer_state_btn = QPushButton("查询单选按钮状态")
-        self.query_designer_state_btn.clicked.connect(self._on_query_enable_radio_state)
-        control_designer_layout.addWidget(self.query_designer_state_btn)
-        main_layout.addLayout(control_designer_layout)
-
-        control_radio_layout = QHBoxLayout()
-        self.check_radio_btn = QPushButton("选中‘开启启动器功能’")
-        self.check_radio_btn.clicked.connect(lambda: self._on_set_radio_state(True))
-        control_radio_layout.addWidget(self.check_radio_btn)
-
-        self.uncheck_radio_btn = QPushButton("取消选中‘开启启动器功能’")
-        self.uncheck_radio_btn.clicked.connect(lambda: self._on_set_radio_state(False))
-        control_radio_layout.addWidget(self.uncheck_radio_btn)
-        main_layout.addLayout(control_radio_layout)
-
-        self.get_designer_data_btn = QPushButton("获取设计器UI数据")
-        self.get_designer_data_btn.clicked.connect(self._on_get_designer_data)
-        main_layout.addWidget(self.get_designer_data_btn)
-
-        self.load_ui_file_btn = QPushButton("从文件加载UI并显示")
-        self.load_ui_file_btn.clicked.connect(self._on_load_ui_from_file)
-        main_layout.addWidget(self.load_ui_file_btn)
-
-        bottom_label = QLabel("这是主窗口的底部区域。")
-        bottom_label.setAlignment(Qt.AlignRight)
-        # 移除了这里的特定颜色设置
-        main_layout.addWidget(bottom_label)
-
-    def _on_enable_designer(self):
-        self.designer_component.set_designer_enabled(True)
-        QMessageBox.information(self, "状态", "设计器已启用。")
-
-    def _on_disable_designer(self):
-        self.designer_component.set_designer_enabled(False)
-        QMessageBox.information(self, "状态", "设计器已禁用。")
-
-    def _on_query_enable_radio_state(self):
-        is_checked = self.designer_component.is_enable_widgets_radio_checked()
-        status_text = "选中" if is_checked else "未选中"
-        QMessageBox.information(self, "单选按钮状态", f"‘开启启动器功能’单选按钮当前状态：{status_text}")
-
-    def _on_set_radio_state(self, state: bool):
-        self.designer_component.set_enable_widgets_radio_state(state)
-        action_text = "选中" if state else "取消选中"
-        QMessageBox.information(self, "单选按钮状态", f"‘开启启动器功能’单选按钮已{action_text}。")
-
-    def _on_get_designer_data(self):
-        ui_data = self.designer_component.get_ui_description_data()
-        if ui_data:
-            QMessageBox.information(self, "设计器UI数据",
-                                    f"已从设计器获取到UI元素：\n{json.dumps(json.loads(ui_data), indent=2, ensure_ascii=False)}")
-        else:
-            QMessageBox.information(self, "设计器UI数据", "设计器中当前没有UI元素数据。")
-
-    def _on_load_ui_from_file(self):
-        options = QFileDialog.Options()
-        file_path, _ = QFileDialog.getOpenFileName(self, "选择UI描述文件", "",
-                                                   "JSON Files (*.json);;All Files (*)", options=options)
-        if file_path:
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    ui_data = json.load(f)
-
-                loaded_ui_window = QWidget()
-                loaded_ui_window.setWindowTitle("加载的UI预览")
-                loaded_ui_layout = QVBoxLayout()
-                loaded_ui_window.setLayout(loaded_ui_layout)
-
-                action_display_label = QLabel('点击运行按钮查看启用项')
-                # 移除了这里的特定颜色设置
-                # action_display_label.setStyleSheet("font-weight: bold; color: green;")
-                action_display_label.setStyleSheet("font-weight: bold;")  # 仅保留粗体
-                loaded_ui_layout.addWidget(action_display_label)
-
-                # Calling the method inherited from UiBuilderMixin
-                all_widgets_for_preview = self._parse_ui_elements_data_and_create_widgets(ui_data, loaded_ui_layout)
-
-                run_all_button = QPushButton('运行所有功能')
-                # Reuse the _run_preview_action logic from UiBuilderMixin
-                run_all_button.clicked.connect(
-                    lambda: self._run_preview_action(all_widgets_for_preview, action_display_label))
-                loaded_ui_layout.addWidget(run_all_button)
-
-                loaded_ui_window.show()
-                QMessageBox.information(self, "加载成功", f"UI描述文件已成功加载并显示：\n{os.path.abspath(file_path)}")
-
-            except json.JSONDecodeError as e:
-                QMessageBox.critical(self, "加载失败", f"文件不是有效的JSON格式：\n{e}")
-            except Exception as e:
-                QMessageBox.critical(self, "加载失败", f"加载UI描述文件时发生错误：\n{e}")
-        else:
-            QMessageBox.information(self, "加载取消", "UI描述文件加载操作已取消。")
-
-
-# --- 主应用类，封装整个应用程序的启动逻辑 ---
-class PyQtUIDesignerApp:
-    def __init__(self):
-        self._app = None
-        self._main_window = None
-
-    def run(self):
-        if QApplication.instance():
-            self._app = QApplication.instance()
-        else:
-            self._app = QApplication(sys.argv)
-
-        self._main_window = MainWindow()
-        self._main_window.show()
-        sys.exit(self._app.exec_())
-
-
 # --- 如果 app_core.py 自身作为主程序运行，提供直接启动的入口 ---
 if __name__ == '__main__':
+    # --- 新的 MainWindow 类，作为顶层窗口来容纳 Designer 组件 ---
+    class MainWindow(QWidget, UItemCreaterWindow):
+        def __init__(self, parent=None):
+            super().__init__(parent)
+            self.setWindowTitle('我的主应用程序 - 参数命令集成')
+            self.setGeometry(100, 100, 1000, 700)
+
+            main_layout = QVBoxLayout()
+            self.setLayout(main_layout)
+
+            top_label = QLabel("欢迎使用我的集成应用程序！")
+            top_label.setAlignment(Qt.AlignCenter)
+            # 移除了这里的特定颜色设置
+            top_label.setStyleSheet("font-size: 20px; font-weight: bold; padding: 10px;")
+            main_layout.addWidget(top_label)
+
+            self.designer_component = LauncherDesigner(self)
+            main_layout.addWidget(self.designer_component)
+
+            control_designer_layout = QHBoxLayout()
+            self.enable_designer_btn = QPushButton("启用设计器")
+            self.enable_designer_btn.clicked.connect(self._on_enable_designer)
+            control_designer_layout.addWidget(self.enable_designer_btn)
+
+            self.disable_designer_btn = QPushButton("禁用设计器")
+            self.disable_designer_btn.clicked.connect(self._on_disable_designer)
+            control_designer_layout.addWidget(self.disable_designer_btn)
+
+            self.query_designer_state_btn = QPushButton("查询单选按钮状态")
+            self.query_designer_state_btn.clicked.connect(self._on_query_enable_radio_state)
+            control_designer_layout.addWidget(self.query_designer_state_btn)
+            main_layout.addLayout(control_designer_layout)
+
+            control_radio_layout = QHBoxLayout()
+            self.check_radio_btn = QPushButton("选中‘开启启动器功能’")
+            self.check_radio_btn.clicked.connect(lambda: self._on_set_radio_state(True))
+            control_radio_layout.addWidget(self.check_radio_btn)
+
+            self.uncheck_radio_btn = QPushButton("取消选中‘开启启动器功能’")
+            self.uncheck_radio_btn.clicked.connect(lambda: self._on_set_radio_state(False))
+            control_radio_layout.addWidget(self.uncheck_radio_btn)
+            main_layout.addLayout(control_radio_layout)
+
+            self.get_designer_data_btn = QPushButton("获取设计器UI数据")
+            self.get_designer_data_btn.clicked.connect(self._on_get_designer_data)
+            main_layout.addWidget(self.get_designer_data_btn)
+
+            self.load_ui_file_btn = QPushButton("从文件加载UI并显示")
+            self.load_ui_file_btn.clicked.connect(self._on_load_ui_from_file)
+            main_layout.addWidget(self.load_ui_file_btn)
+
+            bottom_label = QLabel("这是主窗口的底部区域。")
+            bottom_label.setAlignment(Qt.AlignRight)
+            # 移除了这里的特定颜色设置
+            main_layout.addWidget(bottom_label)
+
+        def _on_enable_designer(self):
+            self.designer_component.set_designer_enabled(True)
+            QMessageBox.information(self, "状态", "设计器已启用。")
+
+        def _on_disable_designer(self):
+            self.designer_component.set_designer_enabled(False)
+            QMessageBox.information(self, "状态", "设计器已禁用。")
+
+        def _on_query_enable_radio_state(self):
+            is_checked = self.designer_component.is_enable_widgets_radio_checked()
+            status_text = "选中" if is_checked else "未选中"
+            QMessageBox.information(self, "单选按钮状态", f"‘开启启动器功能’单选按钮当前状态：{status_text}")
+
+        def _on_set_radio_state(self, state: bool):
+            self.designer_component.set_enable_widgets_radio_state(state)
+            action_text = "选中" if state else "取消选中"
+            QMessageBox.information(self, "单选按钮状态", f"‘开启启动器功能’单选按钮已{action_text}。")
+
+        def _on_get_designer_data(self):
+            ui_data = self.designer_component.get_ui_description_data()
+            if ui_data:
+                QMessageBox.information(self, "设计器UI数据",
+                                        f"已从设计器获取到UI元素：\n{json.dumps(json.loads(ui_data), indent=2, ensure_ascii=False)}")
+            else:
+                QMessageBox.information(self, "设计器UI数据", "设计器中当前没有UI元素数据。")
+
+        def _on_load_ui_from_file(self):
+            options = QFileDialog.Options()
+            file_path, _ = QFileDialog.getOpenFileName(self, "选择UI描述文件", "",
+                                                       "JSON Files (*.json);;All Files (*)", options=options)
+            if file_path:
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        ui_data = json.load(f)
+
+                    loaded_ui_window = QWidget()
+                    loaded_ui_window.setWindowTitle("加载的UI预览")
+                    loaded_ui_layout = QVBoxLayout()
+                    loaded_ui_window.setLayout(loaded_ui_layout)
+
+                    action_display_label = QLabel('点击运行按钮查看启用项')
+                    # 移除了这里的特定颜色设置
+                    # action_display_label.setStyleSheet("font-weight: bold; color: green;")
+                    action_display_label.setStyleSheet("font-weight: bold;")  # 仅保留粗体
+                    loaded_ui_layout.addWidget(action_display_label)
+
+                    # Calling the method inherited from UiBuilderMixin
+                    all_widgets_for_preview = self._parse_ui_elements_data_and_create_widgets(ui_data, loaded_ui_layout)
+
+                    run_all_button = QPushButton('运行所有功能')
+                    # Reuse the _run_preview_action logic from UiBuilderMixin
+                    run_all_button.clicked.connect(
+                        lambda: self._run_preview_action(all_widgets_for_preview, action_display_label))
+                    loaded_ui_layout.addWidget(run_all_button)
+
+                    loaded_ui_window.show()
+                    QMessageBox.information(self, "加载成功", f"UI描述文件已成功加载并显示：\n{os.path.abspath(file_path)}")
+
+                except json.JSONDecodeError as e:
+                    QMessageBox.critical(self, "加载失败", f"文件不是有效的JSON格式：\n{e}")
+                except Exception as e:
+                    QMessageBox.critical(self, "加载失败", f"加载UI描述文件时发生错误：\n{e}")
+            else:
+                QMessageBox.information(self, "加载取消", "UI描述文件加载操作已取消。")
+
+
+    # --- 主应用类，封装整个应用程序的启动逻辑 ---
+    class PyQtUIDesignerApp:
+        def __init__(self):
+            self._app = None
+            self._main_window = None
+
+        def run(self):
+            if QApplication.instance():
+                self._app = QApplication.instance()
+            else:
+                self._app = QApplication(sys.argv)
+
+            self._main_window = MainWindow()
+            self._main_window.show()
+            sys.exit(self._app.exec_())
+
     app_instance = PyQtUIDesignerApp()
     app_instance.run()

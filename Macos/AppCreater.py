@@ -12,10 +12,7 @@ import os
 from PIL import Image
 import configparser
 import shutil
-
-# Minimal UItemCreaterWindow for demonstration if MyUI.py is not present
-
-from Macos.MyUI import UItemCreaterWindow
+from Resources.Caller.MyLauncher import UItemCreaterWindow
 
 
 class AppCreaterWindow(QDialog, UItemCreaterWindow):
@@ -71,7 +68,6 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
     def _create_runmode_widgets(self, main_layout):
         # --- Add Run Mode Selection when no JSON data is provided ---
         run_mode_group_box = QGroupBox("运行模式")
-        # run_mode_group_box.setStyleSheet("font-size: 14px; font-weight: bold;") # Style applied via self.setStyleSheet
         run_mode_layout = QHBoxLayout()
         run_mode_group_box.setLayout(run_mode_layout)
 
@@ -98,7 +94,6 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
 
         # App程序名设置 with optional image
         app_name_group = QGroupBox("App程序名设置")  # Wrap in QGroupBox
-        # app_name_group.setStyleSheet("font-size: 14px; font-weight: bold;") # Style applied via self.setStyleSheet
         app_name_group_layout = QHBoxLayout()
         app_name_group.setLayout(app_name_group_layout)
 
@@ -117,7 +112,6 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
                 pass
 
         app_name_label = QLabel("<b>App 程序名称:</b>")
-        # app_name_label.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px;") # Style applied via self.setStyleSheet
         app_name_group_layout.addWidget(app_name_label)
         self.app_name_edit = QLineEdit()
         self.app_name_edit.setPlaceholderText("请输入 App 程序名称")
@@ -128,18 +122,15 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
 
         # 显示脚本路径
         executable_path_group = QGroupBox("可执行文件")  # Wrap in QGroupBox
-        # executable_path_group.setStyleSheet("font-size: 14px; font-weight: bold;") # Style applied via self.setStyleSheet
         exe_layout = QHBoxLayout()
         executable_path_group.setLayout(exe_layout)
-        exe_label = QLabel(f"{self.executable_path}")  # Removed bold tag and padding as group box title handles it
-        # exe_label.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px;") # Style applied via self.setStyleSheet
+        exe_label = QLabel(f"{self.executable_path}")
         exe_layout.addWidget(exe_label)
         main_layout.addWidget(executable_path_group)  # Add the group box
 
         # --- Python Environment Selection ---
         if self.executable_path and self.executable_path.lower().endswith(".py"):
             python_env_group_box = QGroupBox("Python 环境选择")
-            # python_env_group_box.setStyleSheet("font-size: 14px; font-weight: bold;") # Style applied via self.setStyleSheet
             python_env_layout = QVBoxLayout()
             python_env_group_box.setLayout(python_env_layout)
 
@@ -177,7 +168,6 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
 
             # 显示UI编辑界面
             ui_controls_group_box = QGroupBox("配置参数")
-            # ui_controls_group_box.setStyleSheet("font-size: 16px; font-weight: bold; margin-top: 10px;") # Style applied via self.setStyleSheet
             self.ui_controls_layout = QVBoxLayout()
             ui_controls_group_box.setLayout(self.ui_controls_layout)
 
@@ -210,9 +200,6 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
         Sets the application name QLineEdit to read-only after editing is finished.
         """
         if self.app_name_edit.text():
-            # font = QFont("Arial", 14) # No longer needed due to CSS
-            # font.setBold(True)
-            # self.app_name_edit.setFont(font)
             self.app_name_edit.setReadOnly(True)
 
     def _populate_local_python_paths(self):
@@ -585,248 +572,196 @@ class AppCreaterWindow(QDialog, UItemCreaterWindow):
                 QMessageBox.critical(self, "写ui文件失败", f"写入文件时发生错误: {e}")
 
 
-# Assuming LauncherDesigner and MyUI are in separate files as per the original structure
-# For testing the AppCreaterWindow independently, we'll keep the dummy classes.
-
-# The provided MainWindow and PyQtUIDesignerApp will remain mostly the same,
-# but ensure LauncherDesigner.py and MyUI.py are correctly structured
-# and include the WIDGET_GROUP_STYLE.
-
-# --- MainWindow and PyQtUIDesignerApp (from your second block) ---
-# Assuming Launcher.py contains LauncherDesigner and MyUI.py contains UItemCreaterWindow
-# and the WIDGET_GROUP_STYLE.
-# I'm including a simplified version here for self-containment if Launcher.py/MyUI.py aren't available.
-
-# --- Start of the second provided code block (MainWindow) ---
-# Minimal LauncherDesigner and MyUI classes for demonstration
-try:
-    from Macos.Launcher import LauncherDesigner
-    from Macos.MyUI import UItemCreaterWindow  # Import UItemCreaterWindow (which should contain WIDGET_GROUP_STYLE)
-except ImportError:
-    print("Launcher.py or MyUI.py not found. Using minimal dummy classes for demonstration.")
-
-
-    class LauncherDesigner(QGroupBox):
-        def __init__(self, parent=None):
-            super().__init__("配置启动器 UI 控件", parent)
-            self.setLayout(QVBoxLayout())
-            self.radio_enable = QRadioButton("启用 UI 控件")
-            self.radio_disable = QRadioButton("禁用 UI 控件")
-            self.radio_enable.setChecked(True)
-            self.layout().addWidget(self.radio_enable)
-            self.layout().addWidget(self.radio_disable)
-            self.list_widget = QListWidget()
-            self.layout().addWidget(self.list_widget)
-            self.set_designer_enabled(False)  # Initially disabled
-
-        def set_designer_enabled(self, enabled):
-            self.setEnabled(enabled)
-            self.radio_enable.setEnabled(enabled)
-            self.radio_disable.setEnabled(enabled)
-
-        def is_enable_widgets_radio_checked(self):
-            return self.radio_enable.isChecked()
-
-        def get_ui_description_data(self):
-            return "[]"  # Dummy data
-
-
-    # UItemCreaterWindow from above, needs to be consistently defined
-    # If MyUI.py exists, it should define UItemCreaterWindow and the style.
-    # If not, the dummy UItemCreaterWindow defined at the top of AppCreaterWindow.py
-    # would be used, which also includes the WIDGET_GROUP_STYLE.
-    pass  # No need to redefine UItemCreaterWindow if it's already defined
-
-
-class MainWindow(QWidget, UItemCreaterWindow):  # Inherit UItemCreaterWindow to get WIDGET_GROUP_STYLE
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.exe_path = ""
-        self.png_path = ""
-
-        self.setWindowTitle('MacAppCreater')
-        self.setGeometry(50, 80, 400, 400)  # Set initial size
-        self.center_on_screen()
-
-        # Apply MyUI.py defined general style (assuming UItemCreaterWindow brings it)
-        self.setStyleSheet(self.WIDGET_GROUP_STYLE)
-
-        main_layout = QVBoxLayout()
-        self.setLayout(main_layout)
-
-        # Top label
-        top_label = QLabel("欢迎使用Mac app生成器")
-        top_label.setAlignment(Qt.AlignCenter)
-        top_label.setStyleSheet(
-            "font-size: 20px; font-weight: bold; padding: 10px; color: #DC3545;")  # Red color for welcome
-        main_layout.addWidget(top_label)
-
-        # Executable file selection area - Wrap in QGroupBox
-        executable_group = QGroupBox("选择执行文件")
-        # executable_group.setStyleSheet(self.WIDGET_GROUP_STYLE) # Style already applied to self
-        executable_selection_layout = QHBoxLayout()
-        executable_group.setLayout(executable_selection_layout)
-
-        self.executable_path_display = QLineEdit()
-        self.executable_path_display.setPlaceholderText("未选择执行文件")
-        self.executable_path_display.setReadOnly(True)  # Set as read-only
-        executable_selection_layout.addWidget(self.executable_path_display)
-        self.executable_path_display.setStyleSheet("color: #007BFF;")  # Blue color for path text
-
-        self.select_file_button = QPushButton("选择文件")  # Modified button text
-        self.select_file_button.clicked.connect(self.select_executable_file)
-        executable_selection_layout.addWidget(self.select_file_button)
-        main_layout.addWidget(executable_group)
-
-        # Instantiate Designer as a component
-        self.launcherdesigner = LauncherDesigner(self)  # Pass self as parent
-        main_layout.addWidget(self.launcherdesigner)
-
-        # Icon selection area - Wrap in QGroupBox
-        icon_group = QGroupBox("选择应用图标")  # Modified group box title
-        # icon_group.setStyleSheet(self.WIDGET_GROUP_STYLE) # Style already applied to self
-        icon_selection_layout = QHBoxLayout()
-        icon_group.setLayout(icon_selection_layout)
-
-        self.icon_path_display = QLineEdit()
-        self.icon_path_display.setPlaceholderText("未选择图标文件 (仅支持PNG)")
-        self.icon_path_display.setReadOnly(True)  # Set as read-only
-        icon_selection_layout.addWidget(self.icon_path_display)
-        self.icon_path_display.setStyleSheet("color: #007BFF;")  # Blue color for path text
-
-        self.select_icon_button = QPushButton("选择图标")  # Modified button text
-        self.select_icon_button.clicked.connect(self.select_icon_file)
-        icon_selection_layout.addWidget(self.select_icon_button)
-        main_layout.addWidget(icon_group)
-
-        # Disable icon selection widgets by default
-        self.icon_path_display.setEnabled(False)
-        self.select_icon_button.setEnabled(False)
-
-        # --- New Generate App Button ---
-        self.generate_app_button = QPushButton("生成APP")
-        self.generate_app_button.clicked.connect(self.show_appcreater_window)
-        self.generate_app_button.setEnabled(False)  # Initially disabled
-        main_layout.addWidget(self.generate_app_button)
-        # --- End New ---
-
-    def center_on_screen(self):
-        """
-        Centers the QMainWindow window on the primary screen.
-        """
-        # Get screen geometry
-        screen = QApplication.primaryScreen().geometry()
-        screen_width = screen.width()
-        screen_height = screen.height()
-
-        # Get window geometry
-        qr = self.frameGeometry()
-        window_width = qr.width()
-        window_height = qr.height()
-
-        # Calculate new top-left x and y coordinates
-        x = (screen_width - window_width) // 2
-        y = (screen_height - window_height) // 2
-
-        # Move window to the calculated position
-        self.move(x, y)
-
-    def select_executable_file(self):
-        """
-        Opens a file dialog to select an executable file (Python, Shell, or system command).
-        The selected path is then displayed in the QLineEdit.
-        """
-        options = QFileDialog.Options()
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "选择执行文件",
-            "",  # Start from current directory or last used
-            "所有可执行文件 (*.py *.sh *.command);;Python 脚本 (*.py);;Shell 脚本 (*.sh *.command);;所有文件 (*)",
-            options=options
-        )
-        if file_path:
-            self.exe_path = file_path
-            self.executable_path_display.setText(file_path)
-
-            # After successfully selecting an executable, disable the select file button
-            self.select_file_button.setEnabled(False)
-            self.executable_path_display.setReadOnly(True)  # Ensure path display is read-only
-
-            # Enable LauncherDesigner, icon selection widgets, and Generate App button
-            self.launcherdesigner.set_designer_enabled(True)
-            self.icon_path_display.setEnabled(True)
-            self.select_icon_button.setEnabled(True)
-            self.generate_app_button.setEnabled(True)  # Enable Generate App button
-        else:
-            self.exe_path = ""
-            self.executable_path_display.clear()  # Clear display
-
-            # If user cancels selection, re-enable the select executable file button
-            self.select_file_button.setEnabled(True)  # Re-enable
-            self.executable_path_display.setReadOnly(True)  # Keep read-only
-
-            # Disable LauncherDesigner, icon selection widgets, and Generate App button
-            self.launcherdesigner.set_designer_enabled(False)
-            self.icon_path_display.setEnabled(False)
-            self.select_icon_button.setEnabled(False)
-            self.icon_path_display.clear()  # Clear icon path display
-            self.generate_app_button.setEnabled(False)  # Disable Generate App button
-
-    def select_icon_file(self):
-        """
-        Opens a file dialog to select an icon file (PNG only).
-        The selected path is then displayed in the QLineEdit.
-        """
-        options = QFileDialog.Options()
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "选择图标图片",
-            "",  # Start from current directory or last used
-            "PNG 图片 (*.png);;所有文件 (*)",  # Only PNG files supported
-            options=options
-        )
-        if file_path:
-            self.icon_path_display.setText(file_path)
-            self.png_path = file_path
-        # If user cancels selection, typically keep previous selection or do nothing extra.
-
-    def show_appcreater_window(self):
-        """
-        Creates and displays an AppCreaterWindow instance.
-        """
-        uijson = ""
-        if self.launcherdesigner.is_enable_widgets_radio_checked():
-            uijson = self.launcherdesigner.get_ui_description_data()
-
-        # Pop up the new content window
-        app_creator_dialog = AppCreaterWindow(
-            self,  # Pass the MainWindow instance as the parent
-            executable_path=self.exe_path,
-            image_path=self.png_path,
-            json_data=uijson
-        )
-        app_creator_dialog.exec_()  # Use exec_() for modal dialogs
-
-
-# --- Main application class, encapsulating the entire application launch logic ---
-class PyQtUIDesignerApp:
-    def __init__(self):
-        self._app = None
-        self._main_window = None  # Now holds a MainWindow instance
-
-    def run(self):
-        """Starts the PyQt UI Designer application."""
-        if QApplication.instance():
-            self._app = QApplication.instance()
-        else:
-            self._app = QApplication(sys.argv)
-
-        self._main_window = MainWindow()  # Create MainWindow instance
-        self._main_window.show()  # Show MainWindow
-        sys.exit(self._app.exec_())
-
 
 # Start the Designer app in your script
 if __name__ == '__main__':
+    from Macos.Launcher import LauncherDesigner
+    class MainWindow(QWidget, UItemCreaterWindow):  # Inherit UItemCreaterWindow to get WIDGET_GROUP_STYLE
+        def __init__(self, parent=None):
+            super().__init__(parent)
+            self.exe_path = ""
+            self.png_path = ""
+
+            self.setWindowTitle('MacAppCreater')
+            self.setGeometry(50, 80, 400, 400)  # Set initial size
+            self.center_on_screen()
+
+            # Apply MyUI.py defined general style (assuming UItemCreaterWindow brings it)
+            self.setStyleSheet(self.WIDGET_GROUP_STYLE)
+
+            main_layout = QVBoxLayout()
+            self.setLayout(main_layout)
+
+            # Top label
+            top_label = QLabel("欢迎使用Mac app生成器")
+            top_label.setAlignment(Qt.AlignCenter)
+            top_label.setStyleSheet(
+                "font-size: 20px; font-weight: bold; padding: 10px; color: #DC3545;")  # Red color for welcome
+            main_layout.addWidget(top_label)
+
+            # Executable file selection area - Wrap in QGroupBox
+            executable_group = QGroupBox("选择执行文件")
+            # executable_group.setStyleSheet(self.WIDGET_GROUP_STYLE) # Style already applied to self
+            executable_selection_layout = QHBoxLayout()
+            executable_group.setLayout(executable_selection_layout)
+
+            self.executable_path_display = QLineEdit()
+            self.executable_path_display.setPlaceholderText("未选择执行文件")
+            self.executable_path_display.setReadOnly(True)  # Set as read-only
+            executable_selection_layout.addWidget(self.executable_path_display)
+            self.executable_path_display.setStyleSheet("color: #007BFF;")  # Blue color for path text
+
+            self.select_file_button = QPushButton("选择文件")  # Modified button text
+            self.select_file_button.clicked.connect(self.select_executable_file)
+            executable_selection_layout.addWidget(self.select_file_button)
+            main_layout.addWidget(executable_group)
+
+            # Instantiate Designer as a component
+            self.launcherdesigner = LauncherDesigner(self)  # Pass self as parent
+            main_layout.addWidget(self.launcherdesigner)
+
+            # Icon selection area - Wrap in QGroupBox
+            icon_group = QGroupBox("选择应用图标")  # Modified group box title
+            # icon_group.setStyleSheet(self.WIDGET_GROUP_STYLE) # Style already applied to self
+            icon_selection_layout = QHBoxLayout()
+            icon_group.setLayout(icon_selection_layout)
+
+            self.icon_path_display = QLineEdit()
+            self.icon_path_display.setPlaceholderText("未选择图标文件 (仅支持PNG)")
+            self.icon_path_display.setReadOnly(True)  # Set as read-only
+            icon_selection_layout.addWidget(self.icon_path_display)
+            self.icon_path_display.setStyleSheet("color: #007BFF;")  # Blue color for path text
+
+            self.select_icon_button = QPushButton("选择图标")  # Modified button text
+            self.select_icon_button.clicked.connect(self.select_icon_file)
+            icon_selection_layout.addWidget(self.select_icon_button)
+            main_layout.addWidget(icon_group)
+
+            # Disable icon selection widgets by default
+            self.icon_path_display.setEnabled(False)
+            self.select_icon_button.setEnabled(False)
+
+            # --- New Generate App Button ---
+            self.generate_app_button = QPushButton("生成APP")
+            self.generate_app_button.clicked.connect(self.show_appcreater_window)
+            self.generate_app_button.setEnabled(False)  # Initially disabled
+            main_layout.addWidget(self.generate_app_button)
+            # --- End New ---
+
+        def center_on_screen(self):
+            """
+            Centers the QMainWindow window on the primary screen.
+            """
+            # Get screen geometry
+            screen = QApplication.primaryScreen().geometry()
+            screen_width = screen.width()
+            screen_height = screen.height()
+
+            # Get window geometry
+            qr = self.frameGeometry()
+            window_width = qr.width()
+            window_height = qr.height()
+
+            # Calculate new top-left x and y coordinates
+            x = (screen_width - window_width) // 2
+            y = (screen_height - window_height) // 2
+
+            # Move window to the calculated position
+            self.move(x, y)
+
+        def select_executable_file(self):
+            """
+            Opens a file dialog to select an executable file (Python, Shell, or system command).
+            The selected path is then displayed in the QLineEdit.
+            """
+            options = QFileDialog.Options()
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "选择执行文件",
+                "",  # Start from current directory or last used
+                "所有可执行文件 (*.py *.sh *.command);;Python 脚本 (*.py);;Shell 脚本 (*.sh *.command);;所有文件 (*)",
+                options=options
+            )
+            if file_path:
+                self.exe_path = file_path
+                self.executable_path_display.setText(file_path)
+
+                # After successfully selecting an executable, disable the select file button
+                self.select_file_button.setEnabled(False)
+                self.executable_path_display.setReadOnly(True)  # Ensure path display is read-only
+
+                # Enable LauncherDesigner, icon selection widgets, and Generate App button
+                self.launcherdesigner.set_designer_enabled(True)
+                self.icon_path_display.setEnabled(True)
+                self.select_icon_button.setEnabled(True)
+                self.generate_app_button.setEnabled(True)  # Enable Generate App button
+            else:
+                self.exe_path = ""
+                self.executable_path_display.clear()  # Clear display
+
+                # If user cancels selection, re-enable the select executable file button
+                self.select_file_button.setEnabled(True)  # Re-enable
+                self.executable_path_display.setReadOnly(True)  # Keep read-only
+
+                # Disable LauncherDesigner, icon selection widgets, and Generate App button
+                self.launcherdesigner.set_designer_enabled(False)
+                self.icon_path_display.setEnabled(False)
+                self.select_icon_button.setEnabled(False)
+                self.icon_path_display.clear()  # Clear icon path display
+                self.generate_app_button.setEnabled(False)  # Disable Generate App button
+
+        def select_icon_file(self):
+            """
+            Opens a file dialog to select an icon file (PNG only).
+            The selected path is then displayed in the QLineEdit.
+            """
+            options = QFileDialog.Options()
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "选择图标图片",
+                "",  # Start from current directory or last used
+                "PNG 图片 (*.png);;所有文件 (*)",  # Only PNG files supported
+                options=options
+            )
+            if file_path:
+                self.icon_path_display.setText(file_path)
+                self.png_path = file_path
+            # If user cancels selection, typically keep previous selection or do nothing extra.
+
+        def show_appcreater_window(self):
+            """
+            Creates and displays an AppCreaterWindow instance.
+            """
+            uijson = ""
+            if self.launcherdesigner.is_enable_widgets_radio_checked():
+                uijson = self.launcherdesigner.get_ui_description_data()
+
+            # Pop up the new content window
+            app_creator_dialog = AppCreaterWindow(
+                self,  # Pass the MainWindow instance as the parent
+                executable_path=self.exe_path,
+                image_path=self.png_path,
+                json_data=uijson
+            )
+            app_creator_dialog.exec_()  # Use exec_() for modal dialogs
+
+
+    # --- Main application class, encapsulating the entire application launch logic ---
+    class PyQtUIDesignerApp:
+        def __init__(self):
+            self._app = None
+            self._main_window = None  # Now holds a MainWindow instance
+
+        def run(self):
+            """Starts the PyQt UI Designer application."""
+            if QApplication.instance():
+                self._app = QApplication.instance()
+            else:
+                self._app = QApplication(sys.argv)
+
+            self._main_window = MainWindow()  # Create MainWindow instance
+            self._main_window.show()  # Show MainWindow
+            sys.exit(self._app.exec_())
+
     app_instance = PyQtUIDesignerApp()
     app_instance.run()

@@ -5,9 +5,9 @@ from PyQt5.QtWidgets import (
     QLineEdit
 )
 from PyQt5.QtCore import Qt
-from Macos.Launcher import LauncherDesigner # 确保从 Launcher.py 导入 LauncherDesigner
+from Macos.Launcher import LauncherDesigner
 from Macos.AppCreater import AppCreaterWindow
-from Macos.MyUI import UItemCreaterWindow # 导入 UItemCreaterWindow
+from Resources.Caller.MyLauncher import UItemCreaterWindow # 导入 UItemCreaterWindow
 
 class MainWindow(QWidget, UItemCreaterWindow): # 继承 UItemCreaterWindow
     def __init__(self, parent=None):
@@ -16,7 +16,7 @@ class MainWindow(QWidget, UItemCreaterWindow): # 继承 UItemCreaterWindow
         self.png_path = ""
 
         self.setWindowTitle('MacAppCreater')
-        self.setGeometry(50, 80, 400, 400) # 设置初始大小
+        self.setGeometry(50, 80, 700, 400) # 设置初始大小
         self.center_on_screen()
 
         # 应用 MyUI.py 中定义的通用样式
@@ -76,12 +76,10 @@ class MainWindow(QWidget, UItemCreaterWindow): # 继承 UItemCreaterWindow
         self.icon_path_display.setEnabled(False)
         self.select_icon_button.setEnabled(False)
 
-        # --- 新增的生成APP按钮 ---
         self.generate_app_button = QPushButton("生成APP")
         self.generate_app_button.clicked.connect(self.show_appcreater_window)
         self.generate_app_button.setEnabled(False) # 初始禁用
         main_layout.addWidget(self.generate_app_button)
-        # --- 结束新增 ---
 
     def center_on_screen(self):
         """
@@ -189,7 +187,7 @@ class MainWindow(QWidget, UItemCreaterWindow): # 继承 UItemCreaterWindow
 class PyQtUIDesignerApp:
     def __init__(self):
         self._app = None
-        self._main_window = None # 现在持有的是 MainWindow 实例
+        self._main_window = None
 
     def run(self):
         """启动 PyQt UI Designer 应用程序。"""
